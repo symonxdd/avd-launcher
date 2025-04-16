@@ -1,9 +1,11 @@
 package helper
 
 import (
+	"fmt"
 	"os/exec"
 	"runtime"
 	"syscall"
+	"time"
 )
 
 // Command is just an alias for exec.Cmd
@@ -18,4 +20,9 @@ func NewCommand(name string, arg ...string) *Command {
 		}
 	}
 	return cmd
+}
+
+func TimestampedLog(s string) string {
+	// 🧠 In Go, time.Format uses a specific reference time (Mon Jan 2 15:04:05 MST 2006) to define the layout — we need to pass an example time with the exact formatting we want.
+	return fmt.Sprintf("(%s) %s", time.Now().Format("15:04:05"), s)
 }

@@ -110,22 +110,22 @@ func (a *App) StartAVD(avdName string, coldBoot bool) string {
 		for scanner.Scan() {
 			line := scanner.Text()
 			fmt.Println(line)
-			runtime.EventsEmit(a.ctx, "avd-log", line)
+			runtime.EventsEmit(a.ctx, "avd-log", helper.TimestampedLog(line))
 
 			// Detect successful boot
 			if strings.Contains(line, "Successfully loaded snapshot") || strings.Contains(line, "Boot completed") {
-				runtime.EventsEmit(a.ctx, "avd-booted", avdName)
+				runtime.EventsEmit(a.ctx, "avd-booted", helper.TimestampedLog(avdName))
 			}
 			// Detect shutdown or exit
 			if strings.Contains(line, "Saving with gfxstream=1") {
-				runtime.EventsEmit(a.ctx, "avd-shutdown", avdName)
+				runtime.EventsEmit(a.ctx, "avd-shutdown", helper.TimestampedLog(avdName))
 				delete(a.runningAVDs, avdName)
 				break
 			}
 
 			// Detect multiple AVDs warning and handle here (optional logging)
 			if strings.Contains(line, "Running multiple emulators with the same AVD") {
-				runtime.EventsEmit(a.ctx, "avd-log", "Detected multiple emulator conflict. Lock file issue suspected.")
+				runtime.EventsEmit(a.ctx, "avd-log", helper.TimestampedLog("Detected multiple emulator conflict. Lock file issue suspected."))
 			}
 		}
 	}()

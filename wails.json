@@ -13,7 +13,7 @@
   "splashscreen": {
     "enabled": true,
     "image": "frontend/src/assets/splash.png",
-    "startupBackgroundColour": "#ffffff",
+    "startupBackgroundColour": "#131313",
     "progressBarColour": "#4CAF50"
   }
 }

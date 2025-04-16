@@ -1,22 +1,12 @@
 <template>
   <div class="home-container">
-    <h2 class="page-title">
-      Installed AVDs
-      <transition name="fade" mode="out-in">
-        <span v-if="!loading" :key="store.avds.length">
-          ({{ store.avds.length }})
-        </span>
-      </transition>
-    </h2>
 
-    <transition v-if="loading" name="fade-overlay">
-      <div v-if="loading" class="loading-state">
-        <span class="spinner"></span>
-        Loading AVDs ...
-      </div>
-    </transition>
+    <div class="page-title-container">
+      <h2 class="page-title">Installed AVDs</h2>
+      <span class="count-badge" v-if="store.avds.length">{{ store.avds.length }}</span>
+    </div>
 
-    <div v-else-if="store.avds.length" class="avd-grid">
+    <div v-show="store.avds.length" class="avd-grid">
       <div v-for="avd in store.avds" :key="avd.name" class="avd-card" :class="{ 'avd-running': avd.running }"
         @mouseenter="avd.hover = true" @mouseleave="avd.hover = false">
 
@@ -41,35 +31,24 @@
         </div>
 
         <div class="avd-buttons">
-          <div class="avd-launch-buttons">
-            <button class="btn btn-primary" :class="{ 'disabled': avd.state !== AvdState.POWERED_OFF }"
-              :disabled="avd.state !== AvdState.POWERED_OFF" @click="startAVD(avd, false)">
-              Start
-            </button>
-            <button class="btn btn-secondary" :class="{ 'disabled': avd.state !== AvdState.POWERED_OFF }"
-              :disabled="avd.state !== AvdState.POWERED_OFF" @click="startAVD(avd, true)">
-              Cold Boot
+          <div class="avd-action-button">
+            <template v-if="avd.state === AvdState.POWERED_OFF">
+              <button class="icon-button" @click="startAVD(avd, false)">
+                <i class="bi bi-play-fill icon-start" title="Start AVD"></i>
+              </button>
+              <button class="icon-button icon-button-coldboot" @click="startAVD(avd, true)">
+                <i class="bi bi-arrow-repeat icon-coldboot" title="Cold Boot"></i>
+              </button>
+            </template>
+
+            <button class="icon-button" v-else :disabled="avd.state !== AvdState.RUNNING" @click="stopAVD(avd)">
+              <i class="bi bi-stop-fill icon-stop" title="Stop AVD"></i>
             </button>
           </div>
 
-          <div v-if="avd.state === AvdState.RUNNING" class="avd-stop-button">
-            <button class="btn btn-close" @click="stopAVD(avd)">
-              <i class="bi bi-x-lg"></i>
-            </button>
-          </div>
         </div>
-
       </div>
     </div>
-    <div v-else class="no-avds">No AVDs found.</div>
-
-    <!-- Logs container -->
-    <!-- <div v-if="store.logs.length" class="logs" :class="{ 'logs-expanded': isLogsExpanded }" @click="toggleLogs"
-      ref="logsContainer">
-      <div class="logs-content">{{ store.logs }}</div>
-    </div> -->
-
-    <!-- <div v-if="isLogsExpanded" class="overlay" @click="toggleLogs"></div> -->
 
     <!-- Edit AVD name Dialog -->
     <div v-if="showEditDialog" class="edit-overlay" @click.self="closeEditDialog">
@@ -100,9 +79,7 @@ import { getStateClass } from '../utils/helper'
 
 const store = useAvdStore()
 
-const isLogsExpanded = ref(false)
 const loading = ref(true)
-const logsContainer = ref(null)
 const showEditDialog = ref(false)
 const editAvd = ref(null)
 const editAvdName = ref('')
@@ -147,7 +124,7 @@ function saveEdit() {
 }
 
 const startAVD = async (avd, coldBoot = false) => {
-  store.appendLog(`[AVD Launcher] Launching ${avd.name} (cold boot: ${coldBoot})`)
+  store.appendLog(`[AVD Launcher] Launching ${avd.name} (cold boot: ${coldBoot})...\n\n`)
 
   try {
     store.updateAvdStatus(avd.name, {
@@ -166,10 +143,6 @@ const startAVD = async (avd, coldBoot = false) => {
       launchMode: coldBoot ? 'cold' : 'normal'
     })
   }
-
-  // isLogsExpanded.value = true
-  // await nextTick()
-  // scrollLogsToBottom()
 }
 
 const stopAVD = async (avd) => {
@@ -192,18 +165,6 @@ function openDeleteDialog(avd) {
   }
 }
 
-function toggleLogs() {
-  isLogsExpanded.value = !isLogsExpanded.value
-}
-
-function scrollLogsToBottom() {
-  if (logsContainer.value) {
-    nextTick(() => {
-      logsContainer.value.scrollTop = logsContainer.value.scrollHeight
-    })
-  }
-}
-
 // Close menu on click outside
 function onClickOutside(event) {
   if (!event.target.closest('.menu-button') && !event.target.closest('.context-menu')) {
@@ -212,10 +173,11 @@ function onClickOutside(event) {
 }
 
 onMounted(async () => {
-  if (store.avds.length > 0) {
-    loading.value = false
-    return
-  }
+  // if (store.avds.length > 0) {
+  //   loading.value = false
+  //   return
+  // }
+  loading.value = true
 
   try {
     const avds = await ListAVDs()
@@ -237,7 +199,6 @@ onMounted(async () => {
 
   logListener = EventsOn('avd-log', (line) => {
     store.appendLog(line)
-    scrollLogsToBottom()
   })
 
   EventsOn('avd-booted', (name) => {
@@ -274,12 +235,12 @@ function showToast(message) {
 
 <style scoped>
 .home-container {
-  padding: 20px 10px;
+  padding: 20px 0px 0 20px;
   /* position: relative; */
 }
 
 .page-title {
-  font-size: 1.2rem;
+  font-size: 1.3rem;
   margin-bottom: 16px;
   color: #ccc;
 }
@@ -299,11 +260,11 @@ function showToast(message) {
 
 .avd-card {
   position: relative;
-  background-color: #222;
+  background-color: #131313;
   border-radius: 8px;
   padding: 16px;
   width: 215px;
-  border: 1px solid transparent;
+  border: 1px solid #363636;
   transition: border 0.3s ease;
 }
 
@@ -379,11 +340,8 @@ function showToast(message) {
 }
 
 .avd-buttons {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  margin-top: 20px;
-  /* Adjust as needed to reserve space */
+  /* display: flex; */
+  /* flex-direction: column; */
 }
 
 .avd-launch-buttons {
@@ -437,34 +395,6 @@ function showToast(message) {
 
 .btn-close:hover {
   background-color: #862932;
-}
-
-.logs {
-  position: fixed;
-  bottom: 0;
-  background: #2c2c2c;
-  color: white;
-  padding: 6px 16px;
-  font-family: monospace;
-  height: 30px;
-  width: 100%;
-  white-space: pre-wrap;
-  border-radius: 10px 10px 0 0;
-  transition: height 0.3s ease;
-  z-index: 1000;
-  border: 1px solid #474747;
-  border-bottom: none;
-  overflow-y: auto;
-  font-size: 13px;
-}
-
-.logs-content {
-  line-height: 1.5;
-}
-
-.logs-expanded {
-  height: 450px;
-  font-size: 13px;
 }
 
 .overlay {
@@ -547,46 +477,67 @@ function showToast(message) {
   color: #999;
 }
 
-.loading-state {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: #181818;
-  /* or match your background */
+.page-title-container {
+  position: relative;
+  display: inline-block;
+}
+
+.count-badge {
+  position: absolute;
+  top: -12px;
+  right: -5px;
+  background-color: #DF0000;
+  color: white;
+  font-size: 12px;
+  padding: 2px 5px;
+  border-radius: 50%;
+  line-height: 1;
+  text-align: center;
+}
+
+.icon-button {
+  background: none;
+  border: none;
+  padding: 6px;
+  font-size: 1.5rem;
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
-  font-size: 1.5rem;
-  z-index: 9999;
+  will-change: filter;
 }
 
-.spinner {
-  width: 40px;
-  height: 40px;
-  border: 4px solid rgba(0, 0, 0, 0.1);
-  border-top-color: #4caf50;
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-  margin-bottom: 10px;
+.icon-button i {
+  transition: filter 0.15s ease;
 }
 
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
+.icon-button:hover i {
+  filter: brightness(1.3);
 }
 
-.fade-enter-active,
-.fade-leave-active {
-  transition: opacity 0.7s ease;
+.icon-button:disabled {
+  opacity: 0.5;
 }
 
-.fade-enter-from,
-.fade-leave-to {
-  opacity: 0;
+.icon-start {
+  color: #28a745;
+}
+
+.icon-stop {
+  color: #dc3545;
+}
+
+.avd-action-button {
+  display: flex;
+  margin-top: 10px;
+}
+
+.icon-button-coldboot i {
+  font-size: 1.15rem;
+  /* Slightly smaller to match the others */
+}
+
+.icon-coldboot {
+  color: #ffc107;
 }
 
 .fade-fast-enter-active,
@@ -597,20 +548,5 @@ function showToast(message) {
 .fade-fast-enter-from,
 .fade-fast-leave-to {
   opacity: 0;
-}
-
-.fade-overlay-enter-active,
-.fade-overlay-leave-active {
-  transition: opacity 2s ease;
-}
-
-.fade-overlay-enter-from,
-.fade-overlay-leave-to {
-  opacity: 0;
-}
-
-.fade-overlay-enter-to,
-.fade-overlay-leave-from {
-  opacity: 1;
 }
 </style>

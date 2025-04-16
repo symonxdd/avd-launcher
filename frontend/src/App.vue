@@ -29,7 +29,7 @@ onMounted(() => {
 .app {
   display: flex;
   height: 100vh;
-  background: #181818;
+  background: #131313;
   color: #fff;
 }
 

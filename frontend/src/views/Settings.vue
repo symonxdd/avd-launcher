@@ -31,14 +31,20 @@
     <!-- About / Credits -->
     <div class="app-info">
       <div class="app-info-content">
-        <div class="app-info-meta">
-          v<span>{{ appVersion }} {{ environment }}</span>
-        </div>
         <div class="app-info-credits">
-          Made with 💜 by Symon from BE
+          Powered by <a href="https://wails.io/" target="_blank" rel="noopener" class="wails-link">Wails</a>
+        </div>
+        <div class="app-info-bottom-row">
+          <div class="app-info-credits">
+            Made with ❤️ by Symon from Belgium
+          </div>
+          <div class="app-info-meta">
+            v<span>{{ appVersion }} {{ environment }}</span>
+          </div>
         </div>
       </div>
     </div>
+
   </div>
 </template>
 
@@ -79,7 +85,7 @@ onMounted(() => {
 }
 
 .page-title {
-  font-size: 1.2rem;
+  font-size: 1.3rem;
   margin-bottom: 16px;
   color: #ccc;
 }
@@ -88,9 +94,9 @@ onMounted(() => {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin: 20px 0;
-  padding-bottom: 10px;
-  border-bottom: 1px solid #444;
+  margin-bottom: 15px;
+  padding-bottom: 15px;
+  border-bottom: 1px solid #3b3b3b;
 }
 
 .setting-info {
@@ -100,12 +106,11 @@ onMounted(() => {
 .setting-title {
   font-weight: 600;
   margin-bottom: 4px;
-  font-size: 1.1rem;
-  color: #fff;
+  font-size: 0.95rem;
 }
 
 .setting-description {
-  font-size: 0.9rem;
+  font-size: 0.85rem;
   color: #aaa;
 }
 
@@ -121,9 +126,32 @@ onMounted(() => {
 }
 
 .app-info-credits {
+  /* text-align: right; */
   font-size: 0.9rem;
   color: #888;
-  font-style: italic;
+}
+
+.app-info-bottom-row {
+  display: flex;
+  margin-top: 3px;
+}
+
+.app-info-bottom-row .app-info-credits {
+  flex: 1;
+}
+
+.wails-link {
+  color: #DF0000;
+  text-decoration: none;
+  display: inline-block;
+}
+
+.wails-link:visited {
+  color: #DF0000;
+}
+
+.wails-link:hover {
+  text-decoration: underline;
 }
 
 /* iOS-style switch */
@@ -164,7 +192,7 @@ onMounted(() => {
 }
 
 input:checked + .slider {
-  background-color: #4caf50;
+  background-color: #DF0000;
 }
 
 input:checked + .slider:before {

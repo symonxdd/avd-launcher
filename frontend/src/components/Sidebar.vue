@@ -7,6 +7,10 @@
         <i class="bi bi-house-door nav-icon"></i>
         <span class="nav-text">AVDs</span>
       </li>
+      <li class="nav-item" :class="{ active: $route.path === '/logs' }" @click="$router.push('/logs')">
+        <i class="bi bi-terminal nav-icon"></i>
+        <span class="nav-text">Logs</span>
+      </li>
     </ul>
 
     <!-- Settings at the bottom -->
@@ -60,12 +64,19 @@ import TitleLogo from './TitleLogo.vue'
 }
 
 .nav-item:hover {
-  background-color: #2e2e2e;
+  background-color: #252525;
+  color: #d3d3d3;
+}
+
+.nav-item.active:hover {
+  background-color: #252525;
+  color: #d3d3d3;
 }
 
 .nav-item.active {
-  background-color: #2e2e2e;
+  background-color: transparent;
   color: #d3d3d3;
+  font-weight: bold;
 }
 
 .nav-icon {
