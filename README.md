@@ -1,19 +1,45 @@
-# README
+<div align="center">
+  <a href='' target="_blank">
+    <img src="./build/appicon.png" alt="Project Icon" width="100" style="pointer-events: none;">
+  </a>
+  <h1>AVD Launcher</h1>
+</div>
 
-## About
+- A lightning-fast, ultra-lightweight native app for launching Android Virtual Devices.  
+- Cross-platform, portable, and minimal.
+<br/><br/>
 
-This is the official Wails Vue template.
+## 🔧 Prerequisites
 
-You can configure the project by editing `wails.json`. More information about the project settings can be found
-here: https://wails.io/docs/reference/project-config
+To build or run in live dev mode, follow the [official Wails installation guide](https://wails.io/docs/gettingstarted/installation).  
+You'll need Go installed, along with Node and a package manager like `npm`, `yarn`, or `pnpm`.
+<br/><br/>
 
-## Live Development
+## ⚙️ Live Development
+To start the app in live development mode:
+```bash
+wails dev
+```
+This runs a Vite-powered dev server with hot reload for the frontend.
+<br/><br/>
 
-To run in live development mode, run `wails dev` in the project directory. This will run a Vite development
-server that will provide very fast hot reload of your frontend changes. If you want to develop in a browser
-and have access to your Go methods, there is also a dev server that runs on http://localhost:34115. Connect
-to this in your browser, and you can call your Go code from devtools.
+## 📦 Release Build
+To generate a production-ready, standalone binary:
+```bash
+wails build
+```
+This compiles the app and outputs a native executable, ready to distribute.
+<br/><br/>
 
-## Building
+## Built with ❤️
+This project is built with passion using:
+- [Wails](https://wails.io/)
+- [Go](https://go.dev/)
+- [Vue 3](https://vuejs.org/)
 
-To build a redistributable, production mode package, use `wails build`.
+<div align="center">
+  <sub>Made with 💜 by Symon from Belgium</sub>
+</div>
+<div align="center">
+  <sub>Powered by <a href="https://wails.io/">Wails</a></sub>
+</div>
