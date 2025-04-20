@@ -10,12 +10,13 @@
 <br/><br/>
 
 ## 📥 Downloads
-Grab the latest version for your platform from the [**Releases page**](https://github.com/symonxdd/AVD-Launcher/releases/latest).
+- Grab the latest version for your platform from the [**Releases page**](https://github.com/symonxdd/AVD-Launcher/releases/latest).  
+- No install required — just download and run!
 
-> ℹ️ GitHub 'Releases' is GitHub jargon for downloads.
+> [!TIP]
+> GitHub 'Releases' is GitHub jargon for downloads.
 
-No install required — just download and run!
-<br/><br/>
+<br/>
 
 ## 💡 Motivation
 I'm always excited to try out new technologies, and this project was a perfect opportunity to dive into something fresh. This is my first time working with **Go** and **Wails**.
@@ -23,9 +24,10 @@ I'm always excited to try out new technologies, and this project was a perfect o
 As someone who occasionally develops for mobile, I've always found myself needing a simple tool to quickly launch Android Virtual Devices (AVDs) without the overhead of opening Android Studio. This need became even more apparent during my college internship, where I spent a lot of time working with AVDs but was frustrated by the process of launching Android Studio just to start an emulator. That’s when the idea for **AVD Launcher** came to life.
 
 Wails provides a fantastic bridge between the frontend (Vue.js) and Go’s powerful backend, and I loved how easy it was to get started. There were challenges along the way, but each hurdle made the project that much more rewarding. The integration of both languages felt natural, and I quickly found myself enjoying the process.
-<br/><br/>
 
-> **Developer Section Below:** The following content is intended for developers interested in the inner workings of AVD Launcher.
+> [!NOTE]
+> **Developer section below:** The following content is intended for developers interested in the inner workings of AVD Launcher.
+
 <br/>
 
 ## 🗂️ Project Layout
@@ -62,14 +64,14 @@ avd-launcher/
 └── README.md                   # You're reading it ✨
 ```
 
-> **Note on `app/helper/command_*.go`**  
-> These two files are **OS-specific** and use [Go build tags](https://pkg.go.dev/go/build#hdr-Build_Constraints) to automatically select the correct one during build time. This ensures clean handling of platform quirks without any runtime checks.
+> [!NOTE]
+> The two files at `app/helper/command_*.go` are **OS-specific** and use [Go build tags](https://pkg.go.dev/go/build#hdr-Build_Constraints) to automatically select the correct one during build time. This ensures clean handling of platform quirks without any runtime checks.
 
 <br/>
 
 ## 🔧 Dev Prerequisites
-To build or run in live dev mode, follow the [official Wails installation guide](https://wails.io/docs/gettingstarted/installation).  
-You'll need Go installed, along with Node and a package manager like `npm`, `yarn`, or `pnpm`.
+- To build or run in live dev mode, follow the [official Wails installation guide](https://wails.io/docs/gettingstarted/installation).  
+- You'll need Go installed, along with Node and a package manager like `npm`, `yarn`, or `pnpm`.
 <br/><br/>
 
 ## ⚙️ Live Development
@@ -104,8 +106,8 @@ This will:
 3. Commit the version bump and create a Git tag
 4. Push the commit and tag to GitHub
 
-> ℹ️ The version bump uses a conventional commit message like:  
-> `chore: bumped version to v1.2.3`
+> [!NOTE]
+> The version bump uses a clear commit message like: `chore: bumped version to v1.2.3`
 
 When a `v*` tag is pushed, the [`release.yml`](.github/workflows/release.yml) GitHub Actions workflow is triggered.
 
@@ -118,9 +120,8 @@ When a `v*` tag is pushed, the [`release.yml`](.github/workflows/release.yml) Gi
 
 💡 The release process can be viewed under the repo's **Actions** tab
 
-> 🧠 _Note: This release pipeline wasn't built overnight — it took a full day of trial, error, and frustration to get it working just right. If you're struggling to set up something similar, you're not alone!_
-
-<br/>
+> [!TIP]
+> _This release pipeline wasn't built overnight — it took a full day of trial, error, and frustration to get it working just right. If you're struggling to set up something similar, you're not alone!_
 
 ## Built with ❤️
 This project is built with passion using:
