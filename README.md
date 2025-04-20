@@ -31,6 +31,44 @@ wails build
 This compiles the app and outputs a native executable, ready to distribute.
 <br/><br/>
 
+## 🚀 Release Workflow
+
+AVD Launcher uses a fully automated release pipeline powered by **GitHub Actions** and a helper script.
+
+To create a new release:
+
+### 📦 Step 1: Run the Release Script
+In the project root, run the following npm script:
+```bash
+npm run release
+```
+
+This will:
+1. Prompt you to select the version type (`Patch`, `Minor`, or `Major`).
+2. Bump the version in `frontend/package.json`.
+3. Commit the version bump and create a Git tag.
+4. Push the commit and tag to GitHub.
+
+> ℹ️ The version bump uses a conventional commit message like:  
+> `chore: bumped version to v1.2.3`
+
+### ⚙️ Step 2: GitHub Actions Kicks In
+When a `v*` tag is pushed, the [`release.yml`](.github/workflows/release.yml) GitHub Actions workflow is triggered.
+
+It automatically:
+- 🔧 Builds native binaries for:
+  - Linux (amd64)
+  - Windows (.exe)
+  - macOS (.pkg)
+- 🗃 Renames and organizes the build artifacts.
+- 📝 Creates a new GitHub Release and uploads the binaries with OS-specific labels.
+
+You can view the release process under the repo's **Actions** tab.
+
+> 🧠 _Note: This release pipeline wasn't built overnight — it took a full day of trial, error, and frustration to get it working just right. If you're struggling to set up something similar, you're not alone!_
+
+<br/>
+
 ## Built with ❤️
 This project is built with passion using:
 - [Wails](https://wails.io/)
