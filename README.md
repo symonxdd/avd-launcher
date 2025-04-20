@@ -9,6 +9,14 @@
 - Cross-platform, portable, and minimal.
 <br/><br/>
 
+## 💡 Motivation
+I'm always excited to try out new technologies, and this project was a perfect opportunity to dive into something fresh. This is my first time working with **Go** and **Wails**.
+
+As someone who occasionally develops for mobile, I've always found myself needing a simple tool to quickly launch Android Virtual Devices (AVDs) without the overhead of opening Android Studio. This need became even more apparent during my college internship, where I spent a lot of time working with AVDs but was frustrated by the process of launching Android Studio just to start an emulator. That’s when the idea for **AVD Launcher** came to life.
+
+Wails provides a fantastic bridge between the frontend (Vue.js) and Go’s powerful backend, and I loved how easy it was to get started. There were challenges along the way, but each hurdle made the project that much more rewarding. The integration of both languages felt natural, and I quickly found myself enjoying the process.
+<br/><br/>
+
 ## 📥 Downloads
 Grab the latest version for your platform from the [**Releases page**](https://github.com/symonxdd/AVD-Launcher/releases/latest).
 
