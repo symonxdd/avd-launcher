@@ -9,7 +9,7 @@
 - Cross-platform, portable, and minimal.
 <br/><br/>
 
-## 🔧 Prerequisites
+## 🔧 Dev Prerequisites
 
 To build or run in live dev mode, follow the [official Wails installation guide](https://wails.io/docs/gettingstarted/installation).  
 You'll need Go installed, along with Node and a package manager like `npm`, `yarn`, or `pnpm`.
