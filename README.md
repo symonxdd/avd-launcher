@@ -26,6 +26,46 @@ Wails provides a fantastic bridge between the frontend (Vue.js) and Go’s power
 <br/><br/>
 
 > **Developer Section Below:** The following content is intended for developers interested in the inner workings of AVD Launcher.
+<br/>
+
+## 🗂️ Project Layout
+Here's a quick overview of the main files and folders:
+```
+avd-launcher/
+├── .github/
+│   └── workflows/
+│       └── release.yml         # GitHub Actions workflow for cross-platform builds + releases
+│
+├── app/                        # Go backend logic
+│   ├── helper/                 # Cross-platform utilities and command wrappers
+│   │   ├── command_default.go  # Default command runner (used on non-Windows)
+│   │   ├── command_windows.go  # Windows-specific command runner (hides terminal window)
+│   │   └── helper.go           # Utilities for resolving paths, logging, ADB helpers, etc.
+│   ├── models/                 # Data structures like the AVD model
+│   ├── app.go                  # Main backend bindings exposed to the frontend
+│   └── avd_manager.go          # Functions for managing AVDs (start, list, etc.)
+│
+├── build/                      # App icons, packaging resources, and Wails build outputs
+│   └── appicon.png             # Icon used for the app window and release packages
+│
+├── frontend/                   # Vue 3 frontend (served with Vite)
+│   ├── src/
+│   │   ├── main.js             # Vue app entry point
+│   │   └── App.vue             # Root Vue component
+│   └── index.html              # HTML entry point
+│
+├── go.mod                      # Go dependencies (the Go module manifest)
+├── go.sum                      # Go dependency checksums
+├── main.go                     # App entry point (launches Wails)
+├── release.js                  # Script to automate version bumping and pushing a new release
+├── wails.json                  # Wails project configuration
+└── README.md                   # You're reading it ✨
+```
+
+> **Note on `app/helper/command_*.go`**  
+> These two files are **OS-specific** and use [Go build tags](https://pkg.go.dev/go/build#hdr-Build_Constraints) to automatically select the correct one during build time. This ensures clean handling of platform quirks without any runtime checks.
+
+<br/>
 
 ## 🔧 Dev Prerequisites
 To build or run in live dev mode, follow the [official Wails installation guide](https://wails.io/docs/gettingstarted/installation).  
@@ -49,29 +89,26 @@ This compiles the app and outputs a native executable, ready to distribute.
 <br/><br/>
 
 ## 🚀 Release Workflow
+
 AVD Launcher uses a fully automated release pipeline powered by **GitHub Actions** and a helper script.
 
-To create a new release:
-
-### 📦 Step 1: Run the Release Script
-In the project root, run the following npm script:
+To create a new release, run the release script:
 ```bash
 npm run release
 ```
 
 This will:
-1. Prompt you to select the version type (`Patch`, `Minor`, or `Major`).
-2. Bump the version in `frontend/package.json`.
-3. Commit the version bump and create a Git tag.
-4. Push the commit and tag to GitHub.
+
+1. Prompt to select the version type (`Patch`, `Minor`, or `Major`)
+2. Bump the version in `frontend/package.json`
+3. Commit the version bump and create a Git tag
+4. Push the commit and tag to GitHub
 
 > ℹ️ The version bump uses a conventional commit message like:  
 > `chore: bumped version to v1.2.3`
 
-### ⚙️ Step 2: GitHub Actions Kicks In
 When a `v*` tag is pushed, the [`release.yml`](.github/workflows/release.yml) GitHub Actions workflow is triggered.
 
-It automatically:
 - 🔧 Builds native binaries for:
   - Linux (amd64)
   - Windows (.exe)
@@ -79,7 +116,7 @@ It automatically:
 - 🗃 Renames and organizes the build artifacts.
 - 📝 Creates a new GitHub Release and uploads the binaries with OS-specific labels.
 
-You can view the release process under the repo's **Actions** tab.
+💡 The release process can be viewed under the repo's **Actions** tab
 
 > 🧠 _Note: This release pipeline wasn't built overnight — it took a full day of trial, error, and frustration to get it working just right. If you're struggling to set up something similar, you're not alone!_
 
