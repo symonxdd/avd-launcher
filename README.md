@@ -9,8 +9,15 @@
 - Cross-platform, portable, and minimal.
 <br/><br/>
 
-## 🔧 Dev Prerequisites
+## 📥 Downloads
+Grab the latest version for your platform from the [**Releases page**](https://github.com/symonxdd/AVD-Launcher/releases/latest).
 
+> ℹ️ GitHub 'Releases' is GitHub jargon for downloads.
+
+No install required — just download and run!
+<br/><br/>
+
+## 🔧 Dev Prerequisites
 To build or run in live dev mode, follow the [official Wails installation guide](https://wails.io/docs/gettingstarted/installation).  
 You'll need Go installed, along with Node and a package manager like `npm`, `yarn`, or `pnpm`.
 <br/><br/>
@@ -32,7 +39,6 @@ This compiles the app and outputs a native executable, ready to distribute.
 <br/><br/>
 
 ## 🚀 Release Workflow
-
 AVD Launcher uses a fully automated release pipeline powered by **GitHub Actions** and a helper script.
 
 To create a new release:
