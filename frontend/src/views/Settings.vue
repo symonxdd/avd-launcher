@@ -2,33 +2,22 @@
   <div class="settings-container">
     <div class="settings-main">
       <h2 class="page-title">Settings</h2>
-
-      <!-- Auto-scroll logs -->
-      <div class="setting-item">
-        <div class="setting-info">
-          <div class="setting-title">Auto-scroll logs</div>
-          <div class="setting-description">Automatically scrolls the logs to the last line</div>
-        </div>
-        <label class="switch">
-          <input type="checkbox" v-model="autoScrollLogs" />
-          <span class="slider"></span>
-        </label>
-      </div>
-
-      <!-- Env vars -->
       <div class="setting-item">
         <div class="setting-info">
           <div class="setting-title">Environment variables</div>
-          <div class="setting-description">These are the environment variables needed by the tool</div>
+          <div class="setting-description">Environment variables needed by the tool</div>
           <div class="env-variable">
-            <strong>Android SDK: </strong>
-            <span>{{ envVariables.ANDROID_HOME || 'Not found' }}</span>
+            <ul class="env-list">
+              <li>
+                <strong>ANDROID_HOME (Android SDK): </strong>
+                <span>{{ androidSdkEnv.ANDROID_HOME || 'Not found' }}</span>
+              </li>
+            </ul>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- About / Credits -->
     <div class="app-info">
       <div class="app-info-content">
         <div class="app-info-credits">
@@ -50,24 +39,23 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
-import { GetEnvVariables } from '../../wailsjs/go/app/App'
+import { GetAndroidSdkEnv } from '../../wailsjs/go/app/App'
 
 const autoScrollLogs = ref(true)
-const envVariables = ref({})
+const androidSdkEnv = ref({})
 const appVersion = __APP_VERSION__ || 'v1.0.0'
 const environment = import.meta.env.MODE === 'development' ? '(dev)' : '(prod)'
 
-const fetchEnvVariables = async () => {
+const fetchAndroidSdkEnv = async () => {
   try {
-    envVariables.value = await GetEnvVariables()
-    console.log('Fetched environment variables:', envVariables.value)
+    androidSdkEnv.value = await GetAndroidSdkEnv()
   } catch (error) {
-    console.error('Failed to fetch environment variables:', error)
+    console.error('Error while running GetAndroidSdkEnv():', error)
   }
 }
 
-onMounted(() => {
-  fetchEnvVariables()
+onMounted(async () => {
+  await fetchAndroidSdkEnv()
 })
 </script>
 
@@ -76,7 +64,7 @@ onMounted(() => {
   display: flex;
   flex-direction: column;
   height: 100%;
-  padding: 20px 20px 0 20px;
+  padding: 20px 20px 0 0;
   color: #ccc;
 }
 
@@ -96,17 +84,15 @@ onMounted(() => {
   justify-content: space-between;
   margin-bottom: 15px;
   padding-bottom: 15px;
-  border-bottom: 1px solid #3b3b3b;
 }
 
-.setting-info {
-  max-width: 70%;
+.setting-item:not(:last-child) {
+  border-bottom: 1px solid #3b3b3b;
 }
 
 .setting-title {
   font-weight: 600;
-  margin-bottom: 4px;
-  font-size: 0.95rem;
+  font-size: 1.05rem;
 }
 
 .setting-description {
@@ -116,7 +102,7 @@ onMounted(() => {
 
 .env-variable {
   margin-top: 8px;
-  font-size: 0.9rem;
+  font-size: 0.85rem;
   color: #ccc;
 }
 
@@ -126,7 +112,6 @@ onMounted(() => {
 }
 
 .app-info-credits {
-  /* text-align: right; */
   font-size: 0.9rem;
   color: #888;
 }
@@ -197,5 +182,15 @@ input:checked + .slider {
 
 input:checked + .slider:before {
   transform: translateX(24px);
+}
+
+.env-list {
+  list-style-type: disc;
+  padding-left: 20px;
+  color: #ccc;
+}
+
+.env-list li {
+  margin-bottom: 6px;
 }
 </style>

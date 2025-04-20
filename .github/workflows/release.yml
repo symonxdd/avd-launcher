@@ -1,0 +1,138 @@
+name: Wails build
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+env:
+  NODE_OPTIONS: "--max-old-space-size=4096"
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        build:
+          - name: "avd-launcher"
+            platform: "linux/amd64"
+            os: "ubuntu-latest"
+          - name: "avd-launcher.exe"
+            platform: "windows/amd64"
+            os: "windows-latest"
+          - name: "avd-launcher"
+            platform: "darwin/universal"
+            os: "macos-latest"
+
+    runs-on: ${{ matrix.build.os }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          submodules: recursive
+
+      - name: Build wails
+        uses: dAppServer/wails-build-action@main
+        id: build
+        with:
+          build-name: ${{ matrix.build.name }}
+          build-platform: ${{ matrix.build.platform }}
+          package: false
+          go-version: "1.24.2"
+
+      - name: Rename Windows Build
+        if: runner.os == 'Windows'
+        run: |
+          $TAG = "${{ github.ref_name }}"
+          Rename-Item -Path "build\\bin\\avd-launcher.exe" -NewName "AVD Launcher $TAG.exe"
+
+      - name: Rename macOS Build
+        if: runner.os == 'macOS'
+        run: |
+          TAG="${{ github.ref_name }}"
+          if [ -f build/bin/avd-launcher.pkg ]; then
+            mv build/bin/avd-launcher.pkg "build/bin/AVD Launcher $TAG.pkg"
+          fi
+
+      - name: Rename Linux Build
+        if: runner.os == 'Linux'
+        run: |
+          TAG="${{ github.ref_name }}"
+          mv build/bin/avd-launcher "build/bin/AVD Launcher $TAG"
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ runner.os }}-build
+          path: build/bin/*
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: List all files
+        run: ls -R artifacts
+
+      - name: Prepare release files
+        run: |
+          TAG="${{ github.ref_name }}"
+          mkdir release
+
+          mv "artifacts/Windows-build/AVD Launcher $TAG.exe" "release/AVD Launcher $TAG.exe"
+          mv "artifacts/macOS-build/AVD Launcher $TAG.pkg" "release/AVD Launcher $TAG.pkg"
+          mv "artifacts/Linux-build/AVD Launcher $TAG" "release/AVD Launcher $TAG"
+
+      - name: Create draft GitHub release
+        uses: actions/github-script@v7
+        id: create_release
+        with:
+          result-encoding: string
+          script: |
+            const release = await github.rest.repos.createRelease({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              tag_name: context.ref.replace("refs/tags/", ""),
+              name: `AVD Launcher ${context.ref.replace("refs/tags/", "")}`,
+              body: `🥭 New version released: ${context.ref.replace("refs/tags/", "")}`,
+              draft: false,
+              prerelease: false
+            });
+            return release.data.upload_url;
+
+      - name: Upload assets with labels
+        uses: actions/github-script@v7
+        env:
+          UPLOAD_URL: ${{ steps.create_release.outputs.result }}
+        with:
+          script: |
+            const fs = require('fs');
+            const path = require('path');
+
+            const upload = async (filePath, label) => {
+              const name = path.basename(filePath);
+              const content = fs.readFileSync(filePath);
+              await github.rest.repos.uploadReleaseAsset({
+                url: process.env.UPLOAD_URL,
+                headers: {
+                  'content-type': 'application/octet-stream',
+                  'content-length': content.length
+                },
+                name,
+                label,
+                data: content
+              });
+            };
+
+            const tag = process.env.GITHUB_REF_NAME;
+            await upload(`release/AVD Launcher ${tag}.exe`, `AVD Launcher ${tag} for Windows (.exe)`);
+            await upload(`release/AVD Launcher ${tag}.pkg`, `AVD Launcher ${tag} for macOS (.pkg)`);
+            await upload(`release/AVD Launcher ${tag}`, `AVD Launcher ${tag} for Linux`);

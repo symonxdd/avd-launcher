@@ -13,9 +13,14 @@
 import { ref, onMounted } from 'vue'
 import Sidebar from './components/Sidebar.vue'
 import { WindowSetTitle } from '../wailsjs/runtime/runtime'
+import { useAvdStore } from './stores/avdStore'
 
+const store = useAvdStore()
 const mounted = ref(false)
+
 onMounted(() => {
+  store.startAvdWatcher()
+
   mounted.value = true
 
   const title = import.meta.env.MODE === 'development'
@@ -30,7 +35,7 @@ onMounted(() => {
   display: flex;
   height: 100vh;
   background: #131313;
-  color: #fff;
+  color: #e9e9e9;
 }
 
 .main-content {
@@ -39,7 +44,7 @@ onMounted(() => {
 }
 
 .fade-app-enter-active {
-  transition: opacity 0.8s ease;
+  transition: opacity 1s ease;
 }
 
 .fade-app-enter-from {

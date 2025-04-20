@@ -30,13 +30,13 @@ import TitleLogo from './TitleLogo.vue'
 
 <style scoped>
 .sidebar {
-  width: 195px;
-  min-width: 195px;
+  width: 220px;
+  min-width: 220px;
   background-color: transparent;
   height: 100vh;
   display: flex;
   flex-direction: column;
-  padding: 15px;
+  padding: 15px 0 15px 15px;
 }
 
 .nav-list {

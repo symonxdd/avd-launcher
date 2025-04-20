@@ -9,11 +9,5 @@
   "author": {
     "name": "Symon 🥭",
     "email": "symon.bla@gmail.com"
-  },
-  "splashscreen": {
-    "enabled": true,
-    "image": "frontend/src/assets/splash.png",
-    "startupBackgroundColour": "#131313",
-    "progressBarColour": "#4CAF50"
   }
 }

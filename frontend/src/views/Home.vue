@@ -2,13 +2,26 @@
   <div class="home-container">
 
     <div class="page-title-container">
-      <h2 class="page-title">Installed AVDs</h2>
+      <h2 class="page-title" v-if="androidEnvChecked && !androidHomeMissing">Installed AVDs</h2>
       <span class="count-badge" v-if="store.avds.length">{{ store.avds.length }}</span>
+
+      <div v-if="androidHomeMissing" class="android-home-warning">
+        <i class="bi bi-exclamation-triangle-fill warning-icon"></i>
+        <div class="warning-text">
+          <span class="warning-text-first-line">ANDROID_HOME is not set</span><br />
+          This tool requires the Android SDK to be installed. Please set the ANDROID_HOME environment variable to
+          the path of your Android SDK installation.
+        </div>
+        <button v-if="isWindows" class="btn btn-secondary" @click="openEnvVars">
+          Open Environment Variables
+        </button>
+      </div>
     </div>
 
     <div v-show="store.avds.length" class="avd-grid">
-      <div v-for="avd in store.avds" :key="avd.name" class="avd-card" :class="{ 'avd-running': avd.running }"
-        @mouseenter="avd.hover = true" @mouseleave="avd.hover = false">
+      <div v-for="avd in store.avds" :key="avd.name" class="avd-card"
+        :class="{ 'avd-running': avd.state === AvdState.RUNNING }" @mouseenter="avd.hover = true"
+        @mouseleave="avd.hover = false">
 
         <!-- Three dots menu -->
         <button v-if="avd.hover" class="menu-button" @click="toggleMenu(avd, $event)">
@@ -45,7 +58,6 @@
               <i class="bi bi-stop-fill icon-stop" title="Stop AVD"></i>
             </button>
           </div>
-
         </div>
       </div>
     </div>
@@ -67,19 +79,19 @@
       <div v-if="toastMessage" class="toast">{{ toastMessage }}</div>
     </transition>
   </div>
+
+
 </template>
 
 <script setup>
 import { ref, onMounted, onBeforeUnmount, nextTick } from 'vue'
-import { ListAVDs, StartAVD, StopAVD, ListRunningAVDs } from '../../wailsjs/go/app/App'
-import { EventsOn, EventsOff } from '../../wailsjs/runtime/runtime'
+import { ListAVDs, StartAVD, StopAVD, ListRunningAVDs, GetAndroidSdkEnv, OpenEnvironmentVariables } from '../../wailsjs/go/app/App'
 import { useAvdStore } from '../stores/avdStore'
 import { AvdState } from '../enums/avdState'
 import { getStateClass } from '../utils/helper'
 
 const store = useAvdStore()
 
-const loading = ref(true)
 const showEditDialog = ref(false)
 const editAvd = ref(null)
 const editAvdName = ref('')
@@ -92,8 +104,10 @@ const menuPosition = ref({ x: 0, y: 0 })
 const toastMessage = ref('')
 let toastTimeout = null
 
-// Log listener
-let logListener = null
+const androidHomeMissing = ref(false)
+const androidEnvChecked = ref(false)
+
+const isWindows = navigator.userAgent.includes('Windows')
 
 function toggleMenu(avd, event) {
   if (menuAvd.value === avd) {
@@ -123,24 +137,28 @@ function saveEdit() {
   }
 }
 
+async function openEnvVars() {
+  try {
+    await OpenEnvironmentVariables()
+  } catch (err) {
+    showToast('Failed to open environment settings ❌')
+    console.error(err)
+  }
+}
+
 const startAVD = async (avd, coldBoot = false) => {
   store.appendLog(`[AVD Launcher] Launching ${avd.name} (cold boot: ${coldBoot})...\n\n`)
 
   try {
     store.updateAvdStatus(avd.name, {
       state: AvdState.LOADING,
-      launchMode: coldBoot ? 'cold' : 'normal'
     })
     await nextTick()
     await StartAVD(avd.name, coldBoot)
-
-    // showToast(`AVD ${avd.name} launching... 🚀`)
   } catch (error) {
     showToast(`Failed to launch ${avd.name} ❌`)
     store.updateAvdStatus(avd.name, {
-      loading: false,
-      running: false,
-      launchMode: coldBoot ? 'cold' : 'normal'
+      state: AvdState.POWERED_OFF,
     })
   }
 }
@@ -173,54 +191,53 @@ function onClickOutside(event) {
 }
 
 onMounted(async () => {
-  // if (store.avds.length > 0) {
-  //   loading.value = false
-  //   return
-  // }
-  loading.value = true
+  try {
+    const env = await GetAndroidSdkEnv()
+    // env = '' // for debug purposes
+
+    if (!env.ANDROID_HOME || env.ANDROID_HOME === '') {
+      androidHomeMissing.value = true
+      return
+    }
+  } catch (error) {
+    console.log('Error while running GetAndroidSdkEnv():', error);
+  }
+  finally {
+    androidEnvChecked.value = true
+  }
 
   try {
     const avds = await ListAVDs()
     const runningAvds = await ListRunningAVDs()
 
-    store.avds = avds.map(name => ({
-      name,
-      launchMode: null,
-      state: runningAvds?.includes(name) ? AvdState.RUNNING : AvdState.POWERED_OFF,
-      hover: false
-    }))
+    avds.forEach(name => {
+      const isRunning = runningAvds?.includes(name)
+
+      // If already in store, update its state
+      const existing = store.avds.find(a => a.name === name)
+      if (existing) {
+        store.updateAvdStatus(name, {
+          state: isRunning ? AvdState.RUNNING : AvdState.POWERED_OFF
+        })
+      } else {
+        // Otherwise, add it
+        store.avds.push({
+          name,
+          state: isRunning ? AvdState.RUNNING : AvdState.POWERED_OFF,
+          hover: false
+        })
+      }
+    })
   } catch (err) {
     showToast(`Error... ${err}`)
     console.log(err);
     store.avds = []
-  } finally {
-    loading.value = false
   }
-
-  logListener = EventsOn('avd-log', (line) => {
-    store.appendLog(line)
-  })
-
-  EventsOn('avd-booted', (name) => {
-    store.updateAvdStatus(name, {
-      state: AvdState.RUNNING,
-      launchMode: null
-    })
-    showToast(`${name} is running`)
-  })
-
-  EventsOn("avd-shutdown", (name) => {
-    store.updateAvdStatus(name, {
-      state: AvdState.POWERED_OFF,
-      launchMode: null
-    })
-  });
 
   document.addEventListener('click', onClickOutside)
 })
 
 onBeforeUnmount(() => {
-  if (logListener) EventsOff('avd-log', logListener)
   document.removeEventListener('click', onClickOutside)
 })
 
@@ -235,8 +252,7 @@ function showToast(message) {
 
 <style scoped>
 .home-container {
-  padding: 20px 0px 0 20px;
-  /* position: relative; */
+  padding: 20px 0px 0 0;
 }
 
 .page-title {
@@ -250,7 +266,7 @@ function showToast(message) {
   gap: 18px;
   flex-wrap: wrap;
   align-items: flex-start;
-  /* flex-direction: column; */
+  animation: fadeIn 0.4s ease;
 }
 
 .no-avds {
@@ -339,11 +355,6 @@ function showToast(message) {
   color: #f39c12;
 }
 
-.avd-buttons {
-  /* display: flex; */
-  /* flex-direction: column; */
-}
-
 .avd-launch-buttons {
   display: flex;
   gap: 10px;
@@ -375,7 +386,6 @@ function showToast(message) {
 .btn-secondary {
   background-color: #000000;
   color: white;
-  /* background-color: #6c63ff; */
 }
 
 .btn-secondary:hover {
@@ -479,13 +489,12 @@ function showToast(message) {
 
 .page-title-container {
   position: relative;
-  display: inline-block;
 }
 
 .count-badge {
   position: absolute;
-  top: -12px;
-  right: -5px;
+  top: -10px;
+  left: 127px;
   background-color: #DF0000;
   color: white;
   font-size: 12px;
@@ -493,6 +502,7 @@ function showToast(message) {
   border-radius: 50%;
   line-height: 1;
   text-align: center;
+  font-weight: bold;
 }
 
 .icon-button {
@@ -538,6 +548,49 @@ function showToast(message) {
 
 .icon-coldboot {
   color: #ffc107;
+}
+
+.android-home-warning {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  /* background-color: #1a1a1a; */
+  /* padding: 40px 20px; */
+  border-radius: 8px;
+  /* border: 1px solid #3a3a3a; */
+  text-align: center;
+  animation: fadeIn 0.4s ease;
+}
+
+.warning-icon {
+  color: #ffc107;
+  font-size: 3rem;
+}
+
+.warning-text {
+  line-height: 1.5;
+  margin-bottom: 25px;
+  color: #9e9e9e;
+}
+
+.warning-text-first-line {
+  color: #ffc107;
+  font-weight: bold;
+  display: inline-block;
+  margin-bottom: 25px;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(25px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .fade-fast-enter-active,
