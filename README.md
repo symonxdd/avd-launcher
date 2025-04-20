@@ -9,6 +9,14 @@
 - Cross-platform, portable, and minimal.
 <br/><br/>
 
+## 📥 Downloads
+Grab the latest version for your platform from the [**Releases page**](https://github.com/symonxdd/AVD-Launcher/releases/latest).
+
+> ℹ️ GitHub 'Releases' is GitHub jargon for downloads.
+
+No install required — just download and run!
+<br/><br/>
+
 ## 💡 Motivation
 I'm always excited to try out new technologies, and this project was a perfect opportunity to dive into something fresh. This is my first time working with **Go** and **Wails**.
 
@@ -17,13 +25,7 @@ As someone who occasionally develops for mobile, I've always found myself needin
 Wails provides a fantastic bridge between the frontend (Vue.js) and Go’s powerful backend, and I loved how easy it was to get started. There were challenges along the way, but each hurdle made the project that much more rewarding. The integration of both languages felt natural, and I quickly found myself enjoying the process.
 <br/><br/>
 
-## 📥 Downloads
-Grab the latest version for your platform from the [**Releases page**](https://github.com/symonxdd/AVD-Launcher/releases/latest).
-
-> ℹ️ GitHub 'Releases' is GitHub jargon for downloads.
-
-No install required — just download and run!
-<br/><br/>
+> **Developer Section Below:** The following content is intended for developers interested in the inner workings of AVD Launcher.
 
 ## 🔧 Dev Prerequisites
 To build or run in live dev mode, follow the [official Wails installation guide](https://wails.io/docs/gettingstarted/installation).  
