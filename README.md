@@ -7,7 +7,12 @@
 
 - A lightning-fast, ultra-lightweight native app for launching Android Virtual Devices.  
 - Cross-platform, portable, and minimal.
-<br/><br/>
+
+<br/>
+
+<div align="center">
+  <img src="./docs/screenshots/main-screen.png" alt="Main screen" width="869">
+</div>
 
 ## 📥 Downloads
 - Grab the latest version for your platform from the [**Releases page**](https://github.com/symonxdd/AVD-Launcher/releases/latest).  
@@ -18,12 +23,86 @@
 
 <br/>
 
+<details>
+<summary>
+<strong>⚠️ What's the "Windows protected your PC" message?</strong>
+</summary>
+
+### ⚠️ Windows SmartScreen Warning
+When you run the app for the first time on Windows, you might see a warning like this:
+
+<div>
+  <img src="./docs/screenshots/smartscreen-warning-a.png" alt="SmartScreen Warning Screenshot a" width="600">
+  <br/><br/>
+  <img src="./docs/screenshots/smartscreen-warning-b.png" alt="SmartScreen Warning Screenshot b" width="600">
+</div>
+
+### 🧠 What's actually happening?
+
+This warning appears because the app is **new** and **hasn't yet built trust** with Microsoft SmartScreen, **not because the app is malicious**.
+
+According to [Microsoft's official documentation](https://learn.microsoft.com/en-us/windows/security/operating-system-security/virus-and-threat-protection/microsoft-defender-smartscreen/), SmartScreen determines whether to show this warning based on:
+
+- Whether the file matches a **known list of malicious apps** or is from a **known malicious site**
+- Whether the file is **well-known and frequently downloaded**
+- Whether the app is **digitally signed** with a costly trusted certificate
+
+This is **just a generic warning** — many indie or open-source apps trigger it until they build trust or pay for expensive certificates.
+
+### ✅ How to dismiss and run
+
+1. Click **"More info"**
+2. Click **"Run anyway"**
+
+That’s it — the app will start normally.
+
+### 🤨 Why not prevent the warning
+
+To fully avoid SmartScreen warnings on Windows, developers are expected to:
+
+- Buy and use an **EV (Extended Validation) Code Signing Certificate**  
+- Have enough users download the app over time to build a strong **reputation score**
+
+These certificates can cost **hundreds of dollars per year**, which isn't always feasible for solo developers or small open-source projects.  
+We're focused on keeping this tool free and accessible.  
+> For full details on how SmartScreen works, check out [Microsoft's official documentation](https://learn.microsoft.com/en-us/windows/security/operating-system-security/virus-and-threat-protection/microsoft-defender-smartscreen/)
+
+Thanks for supporting open-source tools! 💙
+
+</details>
+
+<br/>
+
 ## 💡 Motivation
 I'm always excited to try out new technologies, and this project was a perfect opportunity to dive into something fresh. This is my first time working with **Go** and **Wails**.
 
 As someone who occasionally develops for mobile, I've always found myself needing a simple tool to quickly launch Android Virtual Devices (AVDs) without the overhead of opening Android Studio. This need became even more apparent during my college internship, where I spent a lot of time working with AVDs but was frustrated by the process of launching Android Studio just to start an emulator. That’s when the idea for **AVD Launcher** came to life.
 
 Wails provides a fantastic bridge between the frontend (Vue.js) and Go’s powerful backend, and I loved how easy it was to get started. There were challenges along the way, but each hurdle made the project that much more rewarding. The integration of both languages felt natural, and I quickly found myself enjoying the process.
+
+<br/>
+
+## 📸 Screens  
+
+### Main
+![main-screen](./docs/screenshots/main-screen.png)
+
+<br/>
+
+### Logs
+![logs-screen](./docs/screenshots/logs-screen.png)
+
+<br/>
+
+### Settings
+![settings-screen](./docs/screenshots/settings-screen.png) 
+
+<br/>
+
+### ANDROID_HOME not set
+![android-home-not-set](./docs/screenshots/android-home-not-set.png) 
+
+<br/>
 
 > [!NOTE]
 > **Developer section below:** The following content is intended for developers interested in the inner workings of AVD Launcher.
