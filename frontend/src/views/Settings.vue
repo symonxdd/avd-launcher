@@ -21,7 +21,10 @@
     <div class="app-info">
       <div class="app-info-content">
         <div class="app-info-credits">
-          Powered by <a href="https://wails.io/" target="_blank" rel="noopener" class="wails-link">Wails</a>
+          Powered by
+          <a href="https://wails.io/" target="_blank" rel="noopener" class="wails-link">Wails</a>,
+          <a href="https://go.dev/" target="_blank" rel="noopener" class="go-link">Go</a> and
+          <a href="https://vuejs.org/" target="_blank" rel="noopener" class="vue-link">Vue</a>
         </div>
         <div class="app-info-bottom-row">
           <div class="app-info-credits">
@@ -136,6 +139,34 @@ onMounted(async () => {
 }
 
 .wails-link:hover {
+  text-decoration: underline;
+}
+
+.go-link {
+  color: #00ADD8;
+  text-decoration: none;
+  display: inline-block;
+}
+
+.go-link:visited {
+  color: #00ADD8;
+}
+
+.go-link:hover {
+  text-decoration: underline;
+}
+
+.vue-link {
+  color: #42b883;
+  text-decoration: none;
+  display: inline-block;
+}
+
+.vue-link:visited {
+  color: #42b883;
+}
+
+.vue-link:hover {
   text-decoration: underline;
 }
 
