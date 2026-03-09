@@ -1,7 +1,7 @@
 <template>
   <div class="title-logo">
-    <img src="../assets/images/appicon.png" alt="App Logo" class="logo-image">
-    <h1 class="logo-title">AVD Launcher</h1>
+    <img src="../assets/images/appicon-no-bg.png" alt="App Logo" class="logo-image">
+    <!-- <h1 class="logo-title">AVD Launcher</h1> -->
   </div>
 </template>
 
@@ -9,11 +9,12 @@
 .title-logo {
   display: flex;
   align-items: center;
+  justify-content: center;
+  margin-top: 26px;
 }
 
 .logo-image {
   height: 65px;
-  /* margin-right: 10px; */
 }
 
 .logo-title {

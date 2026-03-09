@@ -256,9 +256,9 @@ function showToast(message) {
 }
 
 .page-title {
-  font-size: 1.3rem;
+  font-size: 1.55rem;
   margin-bottom: 16px;
-  color: #ccc;
+  color: var(--page-title-color);
 }
 
 .avd-grid {
@@ -276,16 +276,16 @@ function showToast(message) {
 
 .avd-card {
   position: relative;
-  background-color: #131313;
+  background-color: var(--card-background);
   border-radius: 8px;
   padding: 16px;
   width: 215px;
-  border: 1px solid #363636;
+  border: 1px solid var(--border-color);
   transition: border 0.3s ease;
 }
 
 .avd-card:hover {
-  border: 1px solid #474747;
+  border: 1px solid var(--border-color-hover);
 }
 
 .avd-running {
@@ -332,7 +332,7 @@ function showToast(message) {
 .avd-name {
   font-weight: 600;
   font-size: 0.9rem;
-  color: #eee;
+  color: var(--text-color);
 }
 
 .avd-status {
@@ -493,8 +493,8 @@ function showToast(message) {
 
 .count-badge {
   position: absolute;
-  top: -10px;
-  left: 127px;
+  top: -5px;
+  left: 157px;
   background-color: #DF0000;
   color: white;
   font-size: 12px;

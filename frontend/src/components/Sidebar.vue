@@ -56,7 +56,7 @@ import TitleLogo from './TitleLogo.vue'
   display: flex;
   align-items: center;
   padding: 10px 15px;
-  color: #919191;
+  color: var(--nav-item-color);
   font-size: 0.95rem;
   border-radius: 6px;
   margin-bottom: 10px;
@@ -64,18 +64,18 @@ import TitleLogo from './TitleLogo.vue'
 }
 
 .nav-item:hover {
-  background-color: #252525;
-  color: #d3d3d3;
+  background-color: var(--nav-item-hover-bg);
+  color: var(--nav-item-hover-color);
 }
 
 .nav-item.active:hover {
-  background-color: #252525;
-  color: #d3d3d3;
+  background-color: var(--nav-item-hover-bg);
+  color: var(--nav-item-active-color);
 }
 
 .nav-item.active {
   background-color: transparent;
-  color: #d3d3d3;
+  color: var(--nav-item-active-color);
   font-weight: bold;
 }
 

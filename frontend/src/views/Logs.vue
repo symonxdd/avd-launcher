@@ -201,9 +201,9 @@ function updateHighlighting() {
 }
 
 .page-title {
-  font-size: 1.3rem;
+  font-size: 1.55rem;
   margin-bottom: 16px;
-  color: #ccc;
+  color: var(--page-title-color);
 }
 
 .log-output {
@@ -216,7 +216,7 @@ function updateHighlighting() {
   font-family: monospace;
   font-size: 0.9rem;
   padding: 12px;
-  border: 1px solid #363636;
+  border: 1px solid var(--border-color);
   border-radius: 6px;
   overflow-y: auto;
   white-space: pre-wrap;

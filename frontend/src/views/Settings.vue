@@ -2,52 +2,85 @@
   <div class="settings-container">
     <div class="settings-main">
       <h2 class="page-title">Settings</h2>
-      <div class="setting-item">
-        <div class="setting-info">
-          <div class="setting-title">Environment variables</div>
-          <div class="setting-description">Environment variables needed by the tool</div>
-          <div class="env-variable">
-            <ul class="env-list">
-              <li>
-                <strong>ANDROID_HOME (Android SDK): </strong>
-                <span>{{ androidSdkEnv.ANDROID_HOME || 'Not found' }}</span>
-              </li>
-            </ul>
-          </div>
+
+      <!-- Theming Setting -->
+      <div class="setting-group theme-setting-group">
+        <h5 class="label-heading">
+          Theme
+        </h5>
+        <small class="label-subtext">Choose app appearance</small>
+        <div class="btn-group">
+          <button class="btn" @click="setTheme('light')"
+            :class="{ active: themeStore.theme === 'light' }">Light</button>
+          <button class="btn" @click="setTheme('dark')" :class="{ active: themeStore.theme === 'dark' }">Dark</button>
+          <button class="btn" @click="setTheme('system')"
+            :class="{ active: themeStore.theme === 'system' }">System</button>
+        </div>
+
+        <!-- ✅ Place the True Black toggle here -->
+        <div v-if="isDarkMode" class="true-black-toggle">
+          <label class="switch">
+            <input type="checkbox" :checked="themeStore.trueBlack" @change="themeStore.toggleTrueBlack" />
+            <span class="slider"></span>
+          </label>
+          <span class="toggle-label">Enable True Black</span>
         </div>
       </div>
     </div>
 
-    <div class="app-info">
-      <div class="app-info-content">
-        <div class="app-info-credits">
-          Powered by
-          <a href="https://wails.io/" target="_blank" rel="noopener" class="wails-link">Wails</a>,
-          <a href="https://go.dev/" target="_blank" rel="noopener" class="go-link">Go</a> and
-          <a href="https://vuejs.org/" target="_blank" rel="noopener" class="vue-link">Vue</a>
+    <!-- App Info Section -->
+    <div class="app-info-section">
+      <div v-if="androidSdkEnv" class="sdk-status"
+        :class="{ 'sdk-found': !!androidSdkEnv.ANDROID_HOME, 'sdk-missing': !androidSdkEnv.ANDROID_HOME }"
+        :data-tooltip="sdkTooltipText">
+        <div class="status-icon">
+          <span v-if="androidSdkEnv.ANDROID_HOME">✔</span>
+          <span v-else>✖</span>
         </div>
-        <div class="app-info-bottom-row">
-          <div class="app-info-credits">
-            Made with ❤️ by Symon from Belgium
-          </div>
-          <div class="app-info-meta">
-            v<span>{{ appVersion }} {{ environment }}</span>
-          </div>
+        <div class="status-text">
+          <strong>Android SDK: </strong>
+          <span>
+            {{ androidSdkEnv.ANDROID_HOME || 'Android SDK not installed/found' }}
+          </span>
         </div>
       </div>
+
     </div>
 
+    <!-- Footer Section -->
+    <div class="app-footer">
+      <div class="footer-section footer-left app-info-meta">
+        v{{ appVersion }} {{ environment }}
+      </div>
+      <div class="footer-section footer-center app-info-credits">
+        Powered by
+        <a href="https://wails.io/" target="_blank" rel="noopener" class="wails-link">Wails</a>,
+        <a href="https://go.dev/" target="_blank" rel="noopener" class="go-link">Go</a> and
+        <a href="https://vuejs.org/" target="_blank" rel="noopener" class="vue-link">Vue</a>
+      </div>
+      <div class="footer-section footer-right app-info-credits">
+        Made with ❤️ by Symon from Belgium
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { GetAndroidSdkEnv } from '../../wailsjs/go/app/App'
+import { useThemeStore } from '../stores/themeStore'
 
-const autoScrollLogs = ref(true)
-const androidSdkEnv = ref({})
+const themeStore = useThemeStore()
+const androidSdkEnv = ref(null)
 const appVersion = __APP_VERSION__ || 'v1.0.0'
 const environment = import.meta.env.MODE === 'development' ? '(dev)' : '(prod)'
+
+const sdkTooltipText = computed(() => {
+  if (!androidSdkEnv.value) return ''
+  return androidSdkEnv.value.ANDROID_HOME
+    ? 'SDK found through ANDROID_HOME env variable'
+    : 'This tool requires the Android SDK to be installed and the ANDROID_HOME env variable to be set'
+})
 
 const fetchAndroidSdkEnv = async () => {
   try {
@@ -57,40 +90,46 @@ const fetchAndroidSdkEnv = async () => {
   }
 }
 
+const isDarkMode = computed(() => {
+  if (themeStore.theme === 'dark') return true
+  if (themeStore.theme === 'system') {
+    return window.matchMedia('(prefers-color-scheme: dark)').matches
+  }
+  return false
+})
+
+const setTheme = (mode) => {
+  themeStore.setTheme(mode)
+}
+
 onMounted(async () => {
   await fetchAndroidSdkEnv()
 })
 </script>
 
 <style scoped>
+/* --- Container Layout --- */
 .settings-container {
   display: flex;
   flex-direction: column;
   height: 100%;
-  padding: 20px 20px 0 0;
-  color: #ccc;
+  padding: 20px 0px 0 0;
+  color: var(--text-color);
 }
 
-.settings-main {
-  flex: 1;
-}
-
+/* --- Page Title --- */
 .page-title {
-  font-size: 1.3rem;
+  font-size: 1.55rem;
   margin-bottom: 16px;
-  color: #ccc;
+  color: var(--page-title-color);
 }
 
+/* --- Environment Variable Block --- */
 .setting-item {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
+  flex-direction: column;
   margin-bottom: 15px;
   padding-bottom: 15px;
-}
-
-.setting-item:not(:last-child) {
-  border-bottom: 1px solid #3b3b3b;
 }
 
 .setting-title {
@@ -100,82 +139,230 @@ onMounted(async () => {
 
 .setting-description {
   font-size: 0.85rem;
-  color: #aaa;
+  color: var(--text-color);
 }
 
 .env-variable {
   margin-top: 8px;
   font-size: 0.85rem;
-  color: #ccc;
+  color: var(--text-color);
 }
 
-.app-info-meta {
-  font-size: 0.9rem;
-  color: #888;
+.env-list {
+  list-style-type: disc;
+  padding-left: 20px;
+  color: var(--text-color);
 }
 
-.app-info-credits {
-  font-size: 0.9rem;
-  color: #888;
+.env-list li {
+  margin-bottom: 6px;
 }
 
-.app-info-bottom-row {
+/* --- Theming Section --- */
+.setting-group {
+  background-color: var(--background-secondary);
+  /* border: 1px solid var(--border-color); */
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 20px;
+  width: fit-content;
+}
+
+.label-heading {
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: var(--text-color);
+}
+
+.label-subtext {
+  display: block;
+  font-size: 0.8rem;
+  color: var(--secondary-text-color);
+  margin-bottom: 10px;
+}
+
+.btn-group {
   display: flex;
-  margin-top: 3px;
+  gap: 10px;
+  flex-wrap: wrap;
 }
 
-.app-info-bottom-row .app-info-credits {
-  flex: 1;
+.btn {
+  background-color: transparent;
+  color: var(--text-color);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  font-weight: 400;
+  font-family: Nunito, sans-serif;
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+  transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out;
 }
 
-.wails-link {
-  color: #DF0000;
-  text-decoration: none;
-  display: inline-block;
+.btn:hover {
+  background-color: var(--btn-hover-bg);
 }
 
-.wails-link:visited {
-  color: #DF0000;
+.btn.active {
+  border-color: #8e44ad;
+  background-color: rgba(142, 68, 173, 0.2);
+  color: #8e44ad;
 }
 
-.wails-link:hover {
-  text-decoration: underline;
+/* --- Footer Layout --- */
+.app-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  padding-top: 15px;
+  font-size: 0.75rem;
+  background-color: var(--background-secondary);
+  color: var(--secondary-text-color);
 }
 
-.go-link {
-  color: #00ADD8;
-  text-decoration: none;
-  display: inline-block;
+.footer-section {
+  padding: 5px 10px;
 }
 
-.go-link:visited {
-  color: #00ADD8;
+.footer-left {
+  order: 2;
 }
 
-.go-link:hover {
-  text-decoration: underline;
+.footer-center {
+  order: 1;
+  text-align: center;
 }
 
-.vue-link {
-  color: #42b883;
-  text-decoration: none;
-  display: inline-block;
+.footer-right {
+  order: 3;
+  text-align: right;
 }
 
-.vue-link:visited {
-  color: #42b883;
+.app-info-section {
+  /* margin-top: 20px;
+  padding: 16px;
+  background-color: var(--background-secondary);
+  border-radius: 12px;
+  width: fit-content;
+  font-size: 0.9rem;
+  color: var(--text-color); */
+
+  margin-top: auto;
+  /* Push it to the bottom of the flex container */
+  margin-bottom: 20px;
+  /* Spacing above the footer */
+  padding: 16px;
+  background-color: var(--background-secondary);
+  border-radius: 12px;
+  width: fit-content;
+  font-size: 0.9rem;
+  color: var(--text-color);
 }
 
-.vue-link:hover {
-  text-decoration: underline;
+/* Tooltip via data attribute */
+.sdk-status::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  bottom: calc(100% + 6px);
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: var(--tooltip-bg, #333);
+  color: var(--tooltip-text, #fff);
+  font-weight: 500;
+  padding: 6px 10px;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  white-space: nowrap;
+  z-index: 1000;
+  opacity: 0;
+  pointer-events: none;
+  transition: none;
 }
 
-/* iOS-style switch */
+/* Show tooltip only on hover */
+.sdk-status:hover::after {
+  opacity: 1;
+}
+
+.sdk-status {
+  position: relative;
+  cursor: default;
+
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  border-radius: 999px;
+  transition: background-color 0.3s ease-in-out;
+}
+
+.sdk-found {
+  background-color: rgba(46, 204, 113, 0.15);
+  /* light green bg */
+  color: #2ecc71;
+  /* green text */
+}
+
+.sdk-missing {
+  background-color: rgba(231, 76, 60, 0.15);
+  /* light red bg */
+  color: #e74c3c;
+  /* red text */
+}
+
+.status-icon {
+  width: 1.1rem;
+  height: 1.1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  cursor: default;
+  position: relative;
+}
+
+.status-text {
+  font-family: 'Consolas', monospace;
+}
+
+.status-text span {
+  font-weight: 400;
+  color: inherit;
+}
+
+/* Light/Dark tooltip support */
+:root {
+  --tooltip-bg: #333;
+  --tooltip-text: #fff;
+}
+
+body[data-theme='light'] {
+  --tooltip-bg: #eee;
+  --tooltip-text: #111;
+}
+
+.true-black-toggle {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 16px;
+  font-size: 0.9rem;
+  color: var(--text-color);
+}
+
+.toggle-label {
+  font-weight: 500;
+}
+
+/* Material 3-like switch */
 .switch {
   position: relative;
   display: inline-block;
-  width: 48px;
-  height: 24px;
+  width: 40px;
+  height: 22px;
 }
 
 .switch input {
@@ -186,42 +373,56 @@ onMounted(async () => {
 
 .slider {
   position: absolute;
+  cursor: pointer;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: #777;
-  transition: 0.4s;
-  border-radius: 24px;
+  background-color: var(--border-color);
+  transition: 0.3s;
+  border-radius: 34px;
 }
 
 .slider:before {
   position: absolute;
-  content: "";
-  height: 18px;
-  width: 18px;
+  content: '';
+  height: 16px;
+  width: 16px;
   left: 3px;
   bottom: 3px;
-  background-color: white;
-  transition: 0.4s;
+  background-color: var(--bg-color);
+  transition: 0.3s;
   border-radius: 50%;
 }
 
 input:checked + .slider {
-  background-color: #DF0000;
+  background-color: #8e44ad;
 }
 
 input:checked + .slider:before {
-  transform: translateX(24px);
+  transform: translateX(18px);
 }
 
-.env-list {
-  list-style-type: disc;
-  padding-left: 20px;
-  color: #ccc;
+
+/* --- Link Colors --- */
+.wails-link {
+  color: #df0000;
+  text-decoration: none;
 }
 
-.env-list li {
-  margin-bottom: 6px;
+.go-link {
+  color: #00add8;
+  text-decoration: none;
+}
+
+.vue-link {
+  color: #42b883;
+  text-decoration: none;
+}
+
+.wails-link:hover,
+.go-link:hover,
+.vue-link:hover {
+  text-decoration: underline;
 }
 </style>
