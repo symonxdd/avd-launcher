@@ -1,0 +1,47 @@
+.appContainer {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  background-color: var(--bg-app);
+  color: var(--text-primary);
+  overflow: hidden;
+}
+
+.appBody {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
+
+.mainContent {
+  flex: 1;
+  background-color: var(--bg-surface);
+  border-top-left-radius: 16px;
+  border-left: 1px solid var(--border-subtle);
+  border-top: 1px solid var(--border-subtle);
+  padding: 0 2rem 2rem;
+  overflow-y: auto;
+  position: relative;
+
+  /* Hide scrollbar but keep functionality */
+  scrollbar-width: none;
+  /* Firefox */
+  -ms-overflow-style: none;
+  /* IE and Edge */
+}
+
+.mainContent::-webkit-scrollbar {
+  display: none;
+  /* Chrome, Safari and Opera */
+}
+
+/* Transitions need to be global for <transition name="fade-app"> to work easily,
+   or we can bind the transition classes specifically.
+   Using :global for transition classes within the module. */
+:global(.fade-app-enter-active) {
+  transition: opacity 1s ease;
+}
+
+:global(.fade-app-enter-from) {
+  opacity: 0;
+}

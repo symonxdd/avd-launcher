@@ -1,28 +1,29 @@
 <template>
-  <div class="logs-container" @keydown.stop>
-    <h2 class="page-title">Logs</h2>
+  <div :class="styles.logsContainer" @keydown.stop>
+    <h2 :class="styles.pageTitle">Logs</h2>
 
-    <div v-if="searchActive" class="log-search-bar">
-      <input ref="searchInput" v-model="searchQuery" placeholder="Search logs..." class="search-input"
+    <div v-if="searchActive" :class="styles.logSearchBar">
+      <input ref="searchInput" v-model="searchQuery" placeholder="Search logs..." :class="styles.searchInput"
         @keydown.esc.prevent="deactivateSearch" />
-      <div class="search-controls">
+      <div :class="styles.searchControls">
         <button @click="prevMatch" title="Previous match">
           <i class="bi bi-arrow-up"></i>
         </button>
         <button @click="nextMatch" title="Next match">
           <i class="bi bi-arrow-down"></i>
         </button>
-        <span class="match-counter">{{ matchCounter }}</span>
-        <button class="close-btn" @click="deactivateSearch">×</button>
+        <span :class="styles.matchCounter">{{ matchCounter }}</span>
+        <button :class="styles.closeBtn" @click="deactivateSearch">×</button>
       </div>
     </div>
-    <div class="log-output" ref="logContainer" v-html="highlightedLogs"></div>
+    <div :class="styles.logOutput" ref="logContainer" v-html="highlightedLogs"></div>
   </div>
 </template>
 
 <script setup>
 import { onMounted, onUnmounted, ref, computed, watch, nextTick } from 'vue'
 import { useAvdStore } from '../stores/avdStore'
+import styles from './Logs.module.css'
 
 const store = useAvdStore()
 
@@ -75,7 +76,7 @@ function scrollToMatch(index) {
   const container = logContainer.value
   if (!container) return
 
-  const elements = container.querySelectorAll('.highlight')
+  const elements = container.querySelectorAll(`.${styles.highlight}`)
   if (elements[index]) {
     elements[index].scrollIntoView({ behavior: 'instant' })
   }
@@ -128,7 +129,7 @@ watch(
 
     let i = 0
     highlightedLogs.value = logs.replace(regex, match => {
-      const className = i === currentMatchIndex.value ? 'highlight active-highlight' : 'highlight'
+      const className = i === currentMatchIndex.value ? `${styles.highlight} ${styles.activeHighlight}` : styles.highlight
       matches.value.push(i++)
       return `<span class="${className}">${match}</span>`
     })
@@ -181,119 +182,10 @@ function updateHighlighting() {
   matches.value = []
   highlightedLogs.value = logs.replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(regex, match => {
     const isActive = matchIndex === currentMatchIndex.value
-    const className = isActive ? 'highlight active-highlight' : 'highlight'
+    const className = isActive ? `${styles.highlight} ${styles.activeHighlight}` : styles.highlight
     matches.value.push(matchIndex)
     matchIndex++
     return `<span class="${className}">${match}</span>`
   })
 }
 </script>
-
-<style scoped>
-.logs-container {
-  position: relative;
-  /* allows the search bar to position absolutely inside */
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-  padding: 20px 0 0 0;
-  color: var(--text-primary);
-}
-
-.page-title {
-  font-size: 1.55rem;
-  margin-bottom: 16px;
-  color: var(--page-title-color);
-}
-
-.log-output {
-  flex: 1;
-  width: 100%;
-  height: 100%;
-  resize: none;
-  background-color: transparent;
-  color: var(--text-secondary);
-  font-family: monospace;
-  font-size: 0.9rem;
-  padding: 12px;
-  border: 1px solid var(--border-color);
-  border-radius: 6px;
-  overflow-y: auto;
-  white-space: pre-wrap;
-  word-break: break-word;
-  /* ← this is the fix */
-  outline: none;
-}
-
-.log-search-bar {
-  position: absolute;
-  top: -10px;
-  right: 25px;
-  width: 260px;
-  z-index: 10;
-  background-color: #2b2b2b;
-  border: 1px solid #444;
-  border-radius: 6px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.35);
-  padding: 6px 10px;
-}
-
-.search-input {
-  width: 100%;
-  font-size: 0.9rem;
-  padding: 5px 8px;
-  border: none;
-  border-radius: 4px;
-  background-color: #1e1e1e;
-  color: #fff;
-  outline: none;
-}
-
-::v-deep(.highlight) {
-  background-color: #ffd54f;
-  color: #000;
-  border-radius: 4px;
-}
-
-::v-deep(.active-highlight) {
-  background-color: #FF9632;
-  color: #000;
-  border-radius: 4px;
-}
-
-.search-controls {
-  display: flex;
-  gap: 5px;
-  align-items: center;
-  margin-top: 6px;
-}
-
-.search-controls button {
-  background: #3a3a3a;
-  border: none;
-  color: #fff;
-  padding: 4px 8px;
-  font-size: 0.8rem;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: background 0.2s;
-}
-
-.search-controls button:hover {
-  background: #555;
-}
-
-.close-btn {
-  margin-left: auto;
-  font-size: 1rem;
-  background: transparent;
-  color: #aaa;
-  padding: 2px 6px;
-}
-
-.match-counter {
-  font-size: 0.85rem;
-  color: #aaa;
-  margin-left: 10px;
-}
-</style>

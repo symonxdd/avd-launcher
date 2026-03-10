@@ -1,0 +1,141 @@
+.sidebar {
+  width: 230px;
+  background-color: var(--bg-app);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 0.5rem 0;
+  height: 100%;
+}
+
+.logoContainer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 1.5rem 1.25rem 2rem 1.25rem;
+  transition: transform 0.3s ease-in-out;
+  transform: scale(1);
+}
+
+.logoContainer:hover {
+  animation: pulseGlow 3s ease-in-out infinite;
+}
+
+@keyframes pulseGlow {
+
+  0%,
+  100% {
+    transform: scale(1);
+    filter: brightness(1);
+  }
+
+  50% {
+    transform: scale(1.05);
+    filter: brightness(1.2);
+  }
+}
+
+.logoImage {
+  width: 32px;
+  height: 32px;
+  object-fit: contain;
+}
+
+.logoText {
+  font-size: 1.2rem;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.devIndicator {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  font-size: 0.7rem;
+  color: var(--text-secondary);
+  font-weight: 400;
+  line-height: 1;
+  margin-top: -4px;
+  white-space: nowrap;
+}
+
+.logoTextContainer {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.sidebarItem {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 20px;
+  margin: 4px 8px;
+  color: var(--text-secondary);
+  text-decoration: none;
+  font-weight: 500;
+  font-size: 0.95rem;
+  border: 1px solid transparent;
+  border-radius: 16px;
+  cursor: default;
+  -webkit-user-drag: none;
+  position: relative;
+  transition: background 0.2s ease, color 0.2s ease, border 0.2s ease;
+}
+
+.sidebarTop {
+  display: flex;
+  flex-direction: column;
+}
+
+.sidebarBottom {
+  display: flex;
+  flex-direction: column;
+}
+
+.sidebarItem > .icon,
+.sidebarItem > span {
+  transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), color 0.2s ease;
+}
+
+.sidebarItem:hover > .icon,
+.sidebarItem:hover > span {
+  transform: translateX(4px);
+}
+
+.sidebarItem:hover {
+  background: var(--bg-card-active);
+  color: var(--text-primary);
+  border: 1px solid var(--border-strong);
+}
+
+.sidebarItem.active {
+  background: var(--bg-card-active);
+  color: var(--text-primary);
+  border: 1px solid var(--border-strong);
+}
+
+.icon {
+  font-size: 18px;
+  color: var(--text-secondary);
+  width: 18px;
+  height: 18px;
+}
+
+.sidebarItem:hover .icon,
+.sidebarItem.active .icon {
+  color: var(--text-primary);
+}
+
+.topGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.bottomGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
