@@ -61,6 +61,26 @@
           </div>
         </div>
       </div>
+
+      <!-- --- Update Available Notice --- -->
+      <div v-if="remoteVersion && isRemoteVersionNewer(remoteVersion, appVersion)" :class="styles.settingsGroup">
+        <div>
+          <h5 :class="styles.labelHeading">
+            <v-icon name="hi-gift" :class="styles.headingIcon" />
+            New update ready
+          </h5>
+          <span :class="styles.versionSubtext" style="margin-left: calc(1.1rem + 14px);">v{{ remoteVersion }}</span>
+        </div>
+
+        <div :class="styles.subGroupItems">
+          <div :class="styles.updateActionState">
+            <button :class="styles.actionButton" @click="handleOpenGithubRelease">
+              <v-icon name="fa-github" />
+              View on GitHub
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
 
     <!-- --- Footer Section --- -->
@@ -88,14 +108,20 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue'
 import { GetAndroidSdkEnv, OpenConfigFolder } from '../../wailsjs/go/app/App'
+import { GetLatestVersion } from '../../wailsjs/go/services/UpdateService'
+import { BrowserOpenURL } from '../../wailsjs/runtime'
 import { useThemeStore } from '../stores/themeStore'
 import styles from './Settings.module.css'
 
 const themeStore = useThemeStore()
 const androidSdkEnv = ref(null)
-const appVersion = typeof __APP_VERSION__ !== "undefined" ? __APP_VERSION__ : "1.0.0"
+// const appVersion = typeof __APP_VERSION__ !== "undefined" ? __APP_VERSION__ : "1.0.0"
+const appVersion = "0.0.67"
 const environment = import.meta.env.MODE === 'development' ? 'dev' : 'release'
-const remoteVersion = ref(null) // Not implemented in AVD Launcher yet
+
+const remoteVersion = ref(null)
+const remoteReleaseUrl = ref(null)
+const isCheckingForUpdate = ref(true)
 
 const isDarkMode = computed(() => {
   if (themeStore.theme === 'dark') return true
@@ -105,17 +131,59 @@ const isDarkMode = computed(() => {
   return false
 })
 
-const isUpToDate = computed(() => true) // Placeholder for now
+const isRemoteVersionNewer = (remote, local) => {
+  const parse = (v) => v.split(".").map(Number);
+  const [r1, r2, r3] = parse(remote);
+  const [l1, l2, l3] = parse(local);
+  if (r1 > l1) return true;
+  if (r1 === l1 && r2 > l2) return true;
+  if (r1 === l1 && r2 === l2 && r3 > l3) return true;
+  return false;
+}
+
+const isUpToDate = computed(() => {
+  if (!remoteVersion.value) return true;
+  return !isRemoteVersionNewer(remoteVersion.value, appVersion);
+})
 
 const fetchAndroidSdkEnv = async () => {
   try {
+    // TEMPORARILY DISABLED
     androidSdkEnv.value = await GetAndroidSdkEnv()
   } catch (error) {
     console.error('Error while running GetAndroidSdkEnv():', error)
   }
 }
 
+const checkForUpdate = async () => {
+  isCheckingForUpdate.value = true
+  try {
+    const release = await GetLatestVersion()
+    if (!release?.tag_name) return
+
+    const cleanTag = release.tag_name.startsWith("v")
+      ? release.tag_name.slice(1)
+      : release.tag_name
+
+    remoteVersion.value = cleanTag
+    remoteReleaseUrl.value = release.html_url
+  } catch (err) {
+    console.warn("Version check failed:", err)
+  } finally {
+    isCheckingForUpdate.value = false
+  }
+}
+
+const handleOpenGithubRelease = () => {
+  try {
+    BrowserOpenURL(remoteReleaseUrl.value)
+  } catch (err) {
+    console.error('Failed to open GitHub link in default browser:', err)
+  }
+}
+
 onMounted(async () => {
   await fetchAndroidSdkEnv()
+  await checkForUpdate()
 })
 </script>

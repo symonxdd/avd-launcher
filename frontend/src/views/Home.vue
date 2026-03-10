@@ -165,7 +165,7 @@ const menuPosition = ref({ x: 0, y: 0 })
 const toastMessage = ref('')
 let toastTimeout = null
 
-const sdkMissing = ref(false)
+const sdkMissing = ref(localStorage.getItem('avd_sdk_missing') === 'true')
 const androidEnvChecked = ref(false)
 
 const isWindows = navigator.userAgent.includes('Windows')
@@ -258,6 +258,7 @@ async function selectSdkPath() {
     const path = await SelectAndSaveSdkPath()
     if (path) {
       sdkMissing.value = false
+      localStorage.setItem('avd_sdk_missing', 'false')
       await initData()
     }
   } catch (err) {
@@ -273,16 +274,19 @@ async function initData() {
 
     // TEMPORARILY FORCE THE WARNING FOR TESTING:
     sdkMissing.value = true;
+    localStorage.setItem('avd_sdk_missing', 'true');
     store.avds = [];
     return;
 
     if (!env.path || env.path === '') {
       sdkMissing.value = true
+      localStorage.setItem('avd_sdk_missing', 'true')
       store.avds = [] // Clear any stale AVDs
       return
     }
 
     sdkMissing.value = false
+    localStorage.setItem('avd_sdk_missing', 'false')
 
     const avds = await ListAVDs()
     const runningAvds = await ListRunningAVDs()

@@ -2,6 +2,7 @@ package main
 
 import (
 	"avd-launcher/app"
+	"avd-launcher/app/services"
 	"embed"
 
 	"github.com/wailsapp/wails/v2"
@@ -16,6 +17,7 @@ var assets embed.FS
 func main() {
 	// Create an instance of the app structure
 	myApp := app.NewApp()
+	updateService := services.NewUpdateService()
 
 	// Create application with options
 	err := wails.Run(&options.App{
@@ -33,6 +35,7 @@ func main() {
 		// This allows the frontend to call methods from the backend
 		Bind: []interface{}{
 			myApp,
+			updateService,
 		},
 	})
 

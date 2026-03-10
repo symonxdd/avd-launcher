@@ -15,7 +15,7 @@
 </div>
 
 ## 📥 Downloads
-- Grab the latest version for your platform from the [**Releases page**](https://github.com/symonxdd/AVD-Launcher/releases/latest).  
+- Grab the latest version for your platform from the [**Releases page**](https://github.com/symonxdd/avd-launcher/releases/latest).  
 - No install required — just download and run!
 
 > [!TIP]
