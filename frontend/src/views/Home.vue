@@ -8,7 +8,7 @@
       </div>
 
       <div v-if="androidHomeMissing" :class="styles.androidHomeWarning">
-        <i class="bi bi-exclamation-triangle-fill" :class="styles.warningIcon"></i>
+        <v-icon name="hi-exclamation" :class="styles.warningIcon" :scale="1.5" />
         <div :class="styles.warningText">
           <span :class="styles.warningTextFirstLine">ANDROID_HOME is not set</span><br />
           This tool requires the Android SDK to be installed. Please set the ANDROID_HOME environment variable to
@@ -32,7 +32,7 @@
           </div>
           <div :class="styles.avdName">{{ avd.name }}</div>
           <button :class="[styles.menuButton, { [styles.menuVisible]: avd.hover }]" @click="toggleMenu(avd, $event)">
-            <i class="bi bi-three-dots"></i>
+            <v-icon name="hi-dots-horizontal" />
           </button>
         </div>
 
@@ -46,45 +46,68 @@
         </div>
 
         <!-- Animated context menu -->
-        <transition name="fade-fast">
-          <div v-if="menuAvd === avd" :class="styles.contextMenu"
-            :style="{ top: `${menuPosition.y}px`, left: `${menuPosition.x}px` }">
-            <button @click="openEditDialog(avd)">Edit name</button>
-            <button @click="openDeleteDialog(avd)">Delete</button>
-          </div>
-        </transition>
+        <Teleport to="body">
+          <transition name="fade-fast">
+            <div v-if="menuAvd === avd" :class="styles.contextMenu"
+              :style="{ top: `${menuPosition.y}px`, left: `${menuPosition.x}px` }">
+              <button @click="openEditDialog(avd)">
+                <v-icon name="hi-pencil" :scale="0.85" />
+                <span>Rename</span>
+              </button>
+              <button @click="openDeleteDialog(avd)" :class="styles.deleteItem">
+                <v-icon name="hi-trash" :scale="0.85" />
+                <span>Delete</span>
+              </button>
+            </div>
+          </transition>
+        </Teleport>
 
         <!-- Premium Action buttons with labels -->
         <div :class="styles.avdActions">
           <template v-if="avd.state === AvdState.POWERED_OFF">
             <button :class="[styles.actionBtnPremium, styles.launch]" @click="startAVD(avd, false)">
-              <i class="bi bi-play-fill"></i>
+              <v-icon name="hi-play" :scale="1.1" />
               <span>Launch</span>
             </button>
             <button :class="[styles.actionBtnPremium, styles.coldboot]" @click="startAVD(avd, true)">
-              <i class="bi bi-snow"></i>
+              <v-icon name="fa-snowflake" :scale="0.85" />
               <span>Cold Boot</span>
             </button>
           </template>
-
           <button :class="[styles.actionBtnPremium, styles.stop]" v-else :disabled="avd.state !== AvdState.RUNNING"
             @click="stopAVD(avd.name)">
-            <i class="bi bi-stop-fill"></i>
+            <v-icon name="hi-stop" :scale="1.1" />
             <span>Stop</span>
           </button>
         </div>
       </div>
     </div>
 
-    <!-- Edit AVD name Dialog -->
-    <div v-if="showEditDialog" :class="styles.editOverlay" @click.self="closeEditDialog">
-      <div :class="styles.editDialog">
-        <button :class="styles.editCloseButton" @click="closeEditDialog">
-          <i class="bi bi-x-lg"></i>
-        </button>
-        <h3>Edit AVD name</h3>
-        <input v-model="editAvdName" placeholder="AVD Name" />
-        <button :class="[styles.btn, styles.btnPrimary, 'mt-3']" @click="saveEdit">Save</button>
+    <!-- Edit AVD name Modal -->
+    <div v-if="showEditDialog" :class="[styles.modalOverlay, { [styles.closing]: isEditClosing }]"
+      @animationend="handleEditAnimationEnd">
+      <div :class="styles.modal" @click.stop>
+        <h3>Rename AVD</h3>
+        <p>Enter a new name for <strong>{{ editAvd?.name }}</strong>:</p>
+        <input v-model="editAvdName" placeholder="New AVD Name" @keyup.enter="saveEdit" />
+        <div :class="styles.modalActions">
+          <button :class="[styles.btn, styles.btnSecondary]" @click="closeEditDialog">Cancel</button>
+          <button :class="[styles.btn, styles.btnPrimary]" @click="saveEdit">Confirm</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Delete AVD Modal -->
+    <div v-if="showDeleteDialog" :class="[styles.modalOverlay, { [styles.closing]: isDeleteClosing }]"
+      @animationend="handleDeleteAnimationEnd">
+      <div :class="styles.modal" @click.stop>
+        <h3>Delete AVD</h3>
+        <p>Are you sure you want to permanently delete <strong>{{ deleteAvdTarget?.name }} from your disk</strong>?</p>
+        <p :class="styles.warningTextSmall">This action cannot be undone.</p>
+        <div :class="styles.modalActions">
+          <button :class="[styles.btn, styles.btnSecondary]" @click="closeDeleteDialog">Cancel</button>
+          <button :class="[styles.btn, styles.btnDanger]" @click="confirmDeleteDialog">Delete</button>
+        </div>
       </div>
     </div>
 
@@ -99,7 +122,7 @@
 
 <script setup>
 import { ref, onMounted, onBeforeUnmount, nextTick } from 'vue'
-import { ListAVDs, StartAVD, StopAVD, ListRunningAVDs, GetAndroidSdkEnv, OpenEnvironmentVariables } from '../../wailsjs/go/app/App'
+import { ListAVDs, StartAVD, StopAVD, ListRunningAVDs, GetAndroidSdkEnv, OpenEnvironmentVariables, RenameAVD, DeleteAVD } from '../../wailsjs/go/app/App'
 import { useAvdStore } from '../stores/avdStore'
 import { AvdState } from '../enums/avdState'
 import { getStateClass } from '../utils/helper'
@@ -108,8 +131,13 @@ import styles from './Home.module.css'
 const store = useAvdStore()
 
 const showEditDialog = ref(false)
+const isEditClosing = ref(false)
 const editAvd = ref(null)
 const editAvdName = ref('')
+
+const showDeleteDialog = ref(false)
+const isDeleteClosing = ref(false)
+const deleteAvdTarget = ref(null)
 
 // Context menu
 const menuAvd = ref(null)
@@ -129,7 +157,12 @@ function toggleMenu(avd, event) {
     menuAvd.value = null
   } else {
     menuAvd.value = avd
-    menuPosition.value = { x: event.clientX, y: event.clientY }
+    const rect = event.currentTarget.getBoundingClientRect()
+    // Open menu slightly below and to the left of the button for better UX
+    menuPosition.value = {
+      x: rect.left - 110,
+      y: rect.bottom + 8
+    }
   }
 }
 
@@ -141,14 +174,38 @@ function openEditDialog(avd) {
 }
 
 function closeEditDialog() {
-  showEditDialog.value = false
+  isEditClosing.value = true
 }
 
-function saveEdit() {
+function handleEditAnimationEnd(e) {
+  // Only trigger when the overlay's own animation ends
+  if (e.target !== e.currentTarget) return;
+
+  if (isEditClosing.value) {
+    showEditDialog.value = false
+    isEditClosing.value = false
+    editAvd.value = null
+  }
+}
+
+async function saveEdit() {
   if (editAvd.value) {
-    editAvd.value.name = editAvdName.value.trim()
-    showToast('Edit saved ✅')
-    closeEditDialog()
+    const oldName = editAvd.value.name;
+    const newName = editAvdName.value.trim();
+    if (oldName === newName || newName === '') {
+      closeEditDialog();
+      return;
+    }
+    try {
+      await RenameAVD(oldName, newName);
+      // Update local store to reflect the change
+      editAvd.value.name = newName;
+      showToast('AVD Renamed ✅');
+      closeEditDialog();
+    } catch (err) {
+      showToast('Failed to rename AVD ❌');
+      console.error(err);
+    }
   }
 }
 
@@ -192,9 +249,44 @@ const stopAVD = async (avdName) => {
 
 function openDeleteDialog(avd) {
   menuAvd.value = null
-  if (confirm(`Are you sure you want to kill emulator for "${avd.name}"?`)) {
-    stopAVD(avd.name)
-    showToast('AVD killed ✅')
+  deleteAvdTarget.value = avd
+  showDeleteDialog.value = true
+}
+
+function closeDeleteDialog() {
+  isDeleteClosing.value = true
+}
+
+function handleDeleteAnimationEnd(e) {
+  // Only trigger when the overlay's own animation ends
+  if (e.target !== e.currentTarget) return;
+
+  if (isDeleteClosing.value) {
+    showDeleteDialog.value = false
+    isDeleteClosing.value = false
+    deleteAvdTarget.value = null
+  }
+}
+
+async function confirmDeleteDialog() {
+  const avd = deleteAvdTarget.value
+  if (!avd) return
+
+  try {
+    // Just in case it's currently running, stop it first.
+    if (avd.state === AvdState.RUNNING) {
+      await stopAVD(avd.name);
+    }
+    await DeleteAVD(avd.name);
+
+    // Remove from store
+    store.avds = store.avds.filter(a => a.name !== avd.name);
+    showToast('AVD Deleted ✅');
+  } catch (err) {
+    showToast('Failed to delete AVD ❌');
+    console.error(err);
+  } finally {
+    closeDeleteDialog()
   }
 }
 

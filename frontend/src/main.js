@@ -8,12 +8,11 @@ import './style.css';
 import './styles/flicker.css';
 import './styles/native.css';
 import './styles/focus.css';
-import "bootstrap-icons/font/bootstrap-icons.css";
 
 import { addIcons, OhVueIcon } from "oh-vue-icons";
-import { HiDeviceMobile, HiDocumentText, HiCog, HiSun, HiMoon, HiAdjustments, HiViewGrid, HiGift, FaGithub } from "oh-vue-icons/icons";
+import { HiDeviceMobile, HiDocumentText, HiCog, HiSun, HiMoon, HiAdjustments, HiViewGrid, HiGift, HiPencil, HiTrash, HiPlay, HiStop, HiExclamation, HiDotsHorizontal, HiArrowUp, HiArrowDown, FaGithub, FaSnowflake } from "oh-vue-icons/icons";
 
-addIcons(HiDeviceMobile, HiDocumentText, HiCog, HiSun, HiMoon, HiAdjustments, HiViewGrid, HiGift, FaGithub);
+addIcons(HiDeviceMobile, HiDocumentText, HiCog, HiSun, HiMoon, HiAdjustments, HiViewGrid, HiGift, HiPencil, HiTrash, HiPlay, HiStop, HiExclamation, HiDotsHorizontal, HiArrowUp, HiArrowDown, FaGithub, FaSnowflake);
 
 const app = createApp(App)
 app.use(createPinia())

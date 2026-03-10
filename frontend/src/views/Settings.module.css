@@ -162,6 +162,8 @@
   color: var(--text-secondary);
   font-family: 'Consolas', monospace;
   word-break: break-all;
+  user-select: text;
+  cursor: text;
 }
 
 .statusIconBox {

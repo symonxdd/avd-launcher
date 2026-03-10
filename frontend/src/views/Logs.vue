@@ -7,10 +7,10 @@
         @keydown.esc.prevent="deactivateSearch" />
       <div :class="styles.searchControls">
         <button @click="prevMatch" title="Previous match">
-          <i class="bi bi-arrow-up"></i>
+          <v-icon name="hi-arrow-up" />
         </button>
         <button @click="nextMatch" title="Next match">
-          <i class="bi bi-arrow-down"></i>
+          <v-icon name="hi-arrow-down" />
         </button>
         <span :class="styles.matchCounter">{{ matchCounter }}</span>
         <button :class="styles.closeBtn" @click="deactivateSearch">×</button>

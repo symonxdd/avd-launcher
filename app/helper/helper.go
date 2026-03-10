@@ -1,6 +1,7 @@
 package helper
 
 import (
+	"encoding/json"
 	"fmt"
 	"os"
 	"os/exec"
@@ -18,13 +19,63 @@ func TimestampedLog(s string) string {
 	return fmt.Sprintf("(%s) %s", time.Now().Format("15:04:05"), s)
 }
 
+type AppConfig struct {
+	CustomSdkPath string `json:"custom_sdk_path"`
+}
+
+func GetConfigPath() string {
+	dir, err := os.UserConfigDir()
+	if err != nil {
+		dir = os.TempDir()
+	}
+	appDir := filepath.Join(dir, "avd-launcher")
+	os.MkdirAll(appDir, 0755)
+	return filepath.Join(appDir, "config.json")
+}
+
+func SaveSdkPath(path string) error {
+	cfgPath := GetConfigPath()
+	cfg := AppConfig{CustomSdkPath: path}
+	data, err := json.MarshalIndent(cfg, "", "  ")
+	if err != nil {
+		return err
+	}
+	return os.WriteFile(cfgPath, data, 0644)
+}
+
 // Resolves ANDROID_HOME or returns a default Windows path
 func GetAndroidSdkPath() string {
+	// 1. Check custom config first
+	cfgPath := GetConfigPath()
+	if data, err := os.ReadFile(cfgPath); err == nil {
+		var cfg AppConfig
+		if err := json.Unmarshal(data, &cfg); err == nil && cfg.CustomSdkPath != "" {
+			return cfg.CustomSdkPath
+		}
+	}
+
 	sdkPath := os.Getenv("ANDROID_HOME")
 	if sdkPath != "" {
 		return sdkPath
 	}
 	return ""
+}
+
+// Returns the avdmanager executable path
+func GetAvdManagerPath() (string, error) {
+	sdkPath := GetAndroidSdkPath()
+	cmdlineToolsPath := filepath.Join(sdkPath, "cmdline-tools", "latest", "bin", "avdmanager.bat")
+	if _, err := os.Stat(cmdlineToolsPath); err == nil {
+		return cmdlineToolsPath, nil
+	}
+
+	// Fallback to older tools/bin
+	toolsPath := filepath.Join(sdkPath, "tools", "bin", "avdmanager.bat")
+	if _, err := os.Stat(toolsPath); err == nil {
+		return toolsPath, nil
+	}
+
+	return "", fmt.Errorf("avdmanager not found. Searched in cmdline-tools/latest/bin and tools/bin")
 }
 
 // Returns the adb executable path

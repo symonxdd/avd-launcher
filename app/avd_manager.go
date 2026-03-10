@@ -270,3 +270,41 @@ func (a *App) GetAndroidSdkEnv() map[string]string {
 		"ANDROID_HOME": sdkPath,
 	}
 }
+
+// Renames an existing AVD using avdmanager
+func (a *App) RenameAVD(oldName, newName string) error {
+	avdManagerStr, err := helper.GetAvdManagerPath()
+	if err != nil {
+		return err
+	}
+
+	cmd := helper.NewCommand(avdManagerStr, "move", "avd", "-n", oldName, "-r", newName)
+	cmd.Env = os.Environ()
+
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		return fmt.Errorf("failed to rename AVD '%s' to '%s': %w, output: %s", oldName, newName, err, string(output))
+	}
+
+	fmt.Printf("Renamed AVD '%s' to '%s': %s\n", oldName, newName, string(output))
+	return nil
+}
+
+// Deletes an existing AVD using avdmanager
+func (a *App) DeleteAVD(avdName string) error {
+	avdManagerStr, err := helper.GetAvdManagerPath()
+	if err != nil {
+		return err
+	}
+
+	cmd := helper.NewCommand(avdManagerStr, "delete", "avd", "-n", avdName)
+	cmd.Env = os.Environ()
+
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		return fmt.Errorf("failed to delete AVD '%s': %w, output: %s", avdName, err, string(output))
+	}
+
+	fmt.Printf("Deleted AVD '%s': %s\n", avdName, string(output))
+	return nil
+}
