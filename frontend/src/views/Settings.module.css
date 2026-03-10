@@ -150,13 +150,87 @@
 .statusInfo {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 4px;
+}
+
+.statusLabelRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .statusLabel {
-  font-size: 0.8rem;
+  font-size: 0.85rem;
   font-weight: 600;
+  opacity: 0.8;
+}
+
+.infoTooltipTrigger {
+  position: relative;
+  display: flex;
+  align-items: center;
+  cursor: default;
+}
+
+.infoIcon {
+  font-size: 0.95rem;
+  color: var(--text-secondary);
+  opacity: 0.5;
+  transition: opacity 0.2s ease, color 0.2s ease;
+}
+
+.infoTooltipTrigger:hover .infoIcon {
+  opacity: 0.9;
   color: var(--text-primary);
+}
+
+.infoTooltip {
+  position: absolute;
+  bottom: 150%;
+  left: 50%;
+  transform: translateX(-50%) translateY(8px);
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  padding: 6px 10px;
+  border-radius: 8px;
+  font-size: 0.72rem;
+  color: var(--text-primary);
+  white-space: nowrap;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  pointer-events: auto;
+  opacity: 0;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: 100;
+  backdrop-filter: blur(8px);
+}
+
+.infoTooltip::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border-width: 5px;
+  border-style: solid;
+  border-color: var(--border-subtle) transparent transparent transparent;
+}
+
+.infoTooltipTrigger:hover .infoTooltip {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+.configLink {
+  text-decoration: underline dotted color-mix(in srgb, currentColor 40%, transparent);
+  text-underline-offset: 3px;
+  cursor: default;
+  transition: color 0.2s ease, text-decoration-color 0.2s ease;
+  font-weight: 600;
+}
+
+.configLink:hover {
+  color: #fbbb03;
+  text-decoration-color: #fbbb03;
 }
 
 .statusPath {

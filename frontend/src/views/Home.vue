@@ -16,6 +16,9 @@
               variable.</p>
             <p>Use the 'Select SDK Location' button to choose where your Android SDK is installed, or set the
               ANDROID_HOME environment variable to that location.</p>
+            <button v-if="isWindows" :class="styles.envLearnMore" @click="openEnvInfo">
+              What are environment variables?
+            </button>
           </div>
           <div :class="styles.warningActions">
             <button :class="[styles.btn, styles.btnPrimary, styles.warningBtn]" @click="selectSdkPath">
@@ -120,18 +123,21 @@
       </div>
     </div>
 
+    <!-- Env Vars Explanation Modal -->
+    <EnvInfoModal :show="showEnvInfoDialog" :is-closing="isEnvInfoClosing" @close="closeEnvInfo"
+      @animationend="handleEnvInfoAnimationEnd" />
+
     <!-- Toast -->
     <transition name="fade">
       <div v-if="toastMessage" :class="styles.toast">{{ toastMessage }}</div>
     </transition>
   </div>
-
-
 </template>
 
 <script setup>
 import { ref, onMounted, onBeforeUnmount, nextTick } from 'vue'
 import { ListAVDs, StartAVD, StopAVD, ListRunningAVDs, GetAndroidSdkEnv, OpenEnvironmentVariables, RenameAVD, DeleteAVD, SelectAndSaveSdkPath } from '../../wailsjs/go/app/App'
+import EnvInfoModal from '../components/EnvInfoModal.vue'
 import { useAvdStore } from '../stores/avdStore'
 import { AvdState } from '../enums/avdState'
 import { getStateClass } from '../utils/helper'
@@ -147,6 +153,9 @@ const editAvdName = ref('')
 const showDeleteDialog = ref(false)
 const isDeleteClosing = ref(false)
 const deleteAvdTarget = ref(null)
+
+const showEnvInfoDialog = ref(false)
+const isEnvInfoClosing = ref(false)
 
 // Context menu
 const menuAvd = ref(null)
@@ -227,6 +236,23 @@ async function openEnvVars() {
   }
 }
 
+function openEnvInfo() {
+  showEnvInfoDialog.value = true
+  isEnvInfoClosing.value = false
+}
+
+function closeEnvInfo() {
+  isEnvInfoClosing.value = true
+}
+
+function handleEnvInfoAnimationEnd(e) {
+  if (e.target !== e.currentTarget) return;
+  if (isEnvInfoClosing.value) {
+    showEnvInfoDialog.value = false
+    isEnvInfoClosing.value = false
+  }
+}
+
 async function selectSdkPath() {
   try {
     const path = await SelectAndSaveSdkPath()
@@ -246,9 +272,9 @@ async function initData() {
     // env = '' // for debug purposes
 
     // TEMPORARILY FORCE THE WARNING FOR TESTING:
-    // sdkMissing.value = true;
-    // store.avds = [];
-    // return;
+    sdkMissing.value = true;
+    store.avds = [];
+    return;
 
     if (!env.ANDROID_HOME || env.ANDROID_HOME === '') {
       sdkMissing.value = true

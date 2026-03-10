@@ -9,6 +9,8 @@ export function ListAVDs():Promise<Array<string>>;
 
 export function ListRunningAVDs():Promise<Array<string>>;
 
+export function OpenConfigFolder():Promise<void>;
+
 export function OpenEnvironmentVariables():Promise<void>;
 
 export function RenameAVD(arg1:string,arg2:string):Promise<void>;

@@ -18,6 +18,10 @@ export function ListRunningAVDs() {
   return window['go']['app']['App']['ListRunningAVDs']();
 }
 
+export function OpenConfigFolder() {
+  return window['go']['app']['App']['OpenConfigFolder']();
+}
+
 export function OpenEnvironmentVariables() {
   return window['go']['app']['App']['OpenEnvironmentVariables']();
 }

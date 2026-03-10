@@ -12,8 +12,12 @@ import (
 
 func NewCommand(name string, arg ...string) *Command {
 	cmd := exec.Command(name, arg...)
-	cmd.SysProcAttr = &syscall.SysProcAttr{
-		HideWindow: true,
+
+	if name != "explorer" {
+		cmd.SysProcAttr = &syscall.SysProcAttr{
+			HideWindow: true,
+		}
 	}
+
 	return cmd
 }

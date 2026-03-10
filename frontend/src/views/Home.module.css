@@ -646,7 +646,8 @@
 }
 
 .warningText {
-  font-size: 0.95rem;
+  font-size: 0.82rem;
+  /* Lowered from 0.88rem */
   line-height: 1.6;
 }
 
@@ -665,6 +666,37 @@
   color: #ca8a04;
   margin-bottom: 8px;
   letter-spacing: -0.01em;
+}
+
+.envLearnMore {
+  background: none;
+  border: none;
+  color: #3b82f6;
+  /* Blue in light mode by default */
+  font-size: 0.84rem;
+  font-weight: 700;
+  padding: 0;
+  margin: 16px 0;
+  /* Added spacing top and bottom */
+  cursor: default;
+  text-decoration: underline dotted rgba(59, 130, 246, 0.3);
+  /* Subtle dotted underline */
+  text-underline-offset: 4px;
+  transition: all 0.2s;
+  display: block;
+  width: fit-content;
+}
+
+:global(.theme-dark) .envLearnMore {
+  color: #ca8a04;
+  /* Keep amber in dark mode as it was "cool" */
+  text-decoration-color: rgba(202, 138, 4, 0.3);
+}
+
+.envLearnMore:hover {
+  opacity: 1;
+  text-decoration-color: currentColor;
+  /* Fully visible on hover */
 }
 
 .warningActions {

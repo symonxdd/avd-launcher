@@ -23,6 +23,11 @@ type AppConfig struct {
 	CustomSdkPath string `json:"custom_sdk_path"`
 }
 
+type SdkInfo struct {
+	Path   string `json:"path"`
+	Source string `json:"source"`
+}
+
 func GetConfigPath() string {
 	// 🧠 On Windows, os.UserConfigDir() returns AppData\Roaming, but we want AppData\Local for this app's settings.
 	dir := os.Getenv("LOCALAPPDATA")
@@ -62,18 +67,21 @@ func IsValidSdkPath(path string) bool {
 	if _, err := os.Stat(filepath.Join(path, "emulator")); err == nil {
 		return true
 	}
+	if _, err := os.Stat(filepath.Join(path, "platforms")); err == nil {
+		return true
+	}
 	return false
 }
 
-// Resolves ANDROID_HOME or returns a default Windows path
-func GetAndroidSdkPath() string {
+// Resolves ANDROID_HOME and returns the path along with how it was resolved
+func GetAndroidSdkPath() SdkInfo {
 	// 1. Check custom config first
 	cfgPath := GetConfigPath()
 	if data, err := os.ReadFile(cfgPath); err == nil {
 		var cfg AppConfig
 		if err := json.Unmarshal(data, &cfg); err == nil && cfg.CustomSdkPath != "" {
 			if IsValidSdkPath(cfg.CustomSdkPath) {
-				return cfg.CustomSdkPath
+				return SdkInfo{Path: cfg.CustomSdkPath, Source: "custom path"}
 			}
 		}
 	}
@@ -81,29 +89,32 @@ func GetAndroidSdkPath() string {
 	// 2. Check ANDROID_HOME env var
 	sdkPath := os.Getenv("ANDROID_HOME")
 	if IsValidSdkPath(sdkPath) {
-		return sdkPath
+		return SdkInfo{Path: sdkPath, Source: "ANDROID_HOME environment variable"}
 	}
 
 	// 3. Check common Windows default locations
 	localAppData := os.Getenv("LOCALAPPDATA")
-	commonPaths := []string{
-		filepath.Join(localAppData, "Android", "Sdk"),
-		`C:\Android\Sdk`,
-		`C:\Program Files (x86)\Android\android-sdk`,
+	commonPaths := []struct {
+		path   string
+		source string
+	}{
+		{filepath.Join(localAppData, "Android", "Sdk"), "default location (local appdata)"},
+		{`C:\Android\Sdk`, "default location (C:\\Android\\Sdk)"},
+		{`C:\Program Files (x86)\Android\android-sdk`, "default location (program files)"},
 	}
 
-	for _, path := range commonPaths {
-		if IsValidSdkPath(path) {
-			return path
+	for _, cp := range commonPaths {
+		if IsValidSdkPath(cp.path) {
+			return SdkInfo{Path: cp.path, Source: cp.source}
 		}
 	}
 
-	return ""
+	return SdkInfo{Path: "", Source: "Not found"}
 }
 
 // Returns the avdmanager executable path
 func GetAvdManagerPath() (string, error) {
-	sdkPath := GetAndroidSdkPath()
+	sdkPath := GetAndroidSdkPath().Path
 	cmdlineToolsPath := filepath.Join(sdkPath, "cmdline-tools", "latest", "bin", "avdmanager.bat")
 	if _, err := os.Stat(cmdlineToolsPath); err == nil {
 		return cmdlineToolsPath, nil
@@ -120,7 +131,7 @@ func GetAvdManagerPath() (string, error) {
 
 // Returns the adb executable path
 func GetAdbPath() (string, error) {
-	sdkPath := GetAndroidSdkPath()
+	sdkPath := GetAndroidSdkPath().Path
 	adbPath := filepath.Join(sdkPath, "platform-tools", "adb.exe")
 
 	if _, err := os.Stat(adbPath); os.IsNotExist(err) {
@@ -131,7 +142,7 @@ func GetAdbPath() (string, error) {
 
 // Returns the emulator executable path
 func GetEmulatorPath() (string, error) {
-	sdkPath := GetAndroidSdkPath()
+	sdkPath := GetAndroidSdkPath().Path
 	emulatorPath := filepath.Join(sdkPath, "emulator", "emulator.exe")
 	if _, err := os.Stat(emulatorPath); os.IsNotExist(err) {
 		return "", fmt.Errorf("emulator not found at: %s", emulatorPath)

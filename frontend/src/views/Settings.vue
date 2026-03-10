@@ -35,7 +35,23 @@
           <div v-if="androidSdkEnv"
             :class="[styles.sdkStatusRow, { [styles.sdkFound]: !!androidSdkEnv.ANDROID_HOME, [styles.sdkMissing]: !androidSdkEnv.ANDROID_HOME }]">
             <div :class="styles.statusInfo">
-              <span :class="styles.statusLabel">Android SDK Status</span>
+              <div :class="styles.statusLabelRow">
+                <span :class="styles.statusLabel">Android SDK Status</span>
+                <div v-if="androidSdkEnv.SOURCE" :class="styles.infoTooltipTrigger">
+                  <v-icon name="hi-information-circle" :class="styles.infoIcon" />
+                  <div :class="styles.infoTooltip">
+                    <template v-if="androidSdkEnv.SOURCE === 'custom path'">
+                      Detected via
+                      <span :class="styles.configLink" @click="OpenConfigFolder">
+                        custom path
+                      </span>
+                    </template>
+                    <template v-else>
+                      Detected via {{ androidSdkEnv.SOURCE }}
+                    </template>
+                  </div>
+                </div>
+              </div>
               <span :class="styles.statusPath">{{ androidSdkEnv.ANDROID_HOME || 'Not found' }}</span>
             </div>
             <div :class="styles.statusIconBox">
@@ -71,7 +87,7 @@
 
 <script setup>
 import { ref, onMounted, computed } from 'vue'
-import { GetAndroidSdkEnv } from '../../wailsjs/go/app/App'
+import { GetAndroidSdkEnv, OpenConfigFolder } from '../../wailsjs/go/app/App'
 import { useThemeStore } from '../stores/themeStore'
 import styles from './Settings.module.css'
 

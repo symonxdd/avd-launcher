@@ -270,13 +270,14 @@ func (a *App) StopAVD(name string) error {
 	return nil
 }
 
-// Retrieves the Android SDK environment variable
+// Retrieves the Android SDK environment variable and its resolution source
 func (a *App) GetAndroidSdkEnv() map[string]string {
-	sdkPath := helper.GetAndroidSdkPath()
-	fmt.Println("Resolved ANDROID_HOME:", sdkPath)
+	sdkInfo := helper.GetAndroidSdkPath()
+	fmt.Printf("Resolved ANDROID_HOME: %s (via %s)\n", sdkInfo.Path, sdkInfo.Source)
 
 	return map[string]string{
-		"ANDROID_HOME": sdkPath,
+		"ANDROID_HOME": sdkInfo.Path,
+		"SOURCE":       sdkInfo.Source,
 	}
 }
 
