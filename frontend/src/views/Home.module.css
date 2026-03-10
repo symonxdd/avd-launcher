@@ -14,6 +14,8 @@
   /* Stable height to prevent flickering */
 }
 
+
+
 .pageTitle {
   font-size: 1.55rem;
   margin: 0;
@@ -37,6 +39,8 @@
 :global(.theme-dark) .countBadge {
   color: #111;
 }
+
+
 
 /* ──── Card Grid ──── */
 .avdGrid {
@@ -606,28 +610,70 @@
 
 .androidHomeWarning {
   display: flex;
-  align-items: center;
-  gap: 16px;
-  padding: 16px;
-  background: rgba(234, 179, 8, 0.1);
-  border: 1px solid rgba(234, 179, 8, 0.2);
-  border-radius: 12px;
+  align-items: flex-start;
+  gap: 20px;
+  padding: 24px;
+  background: rgba(234, 179, 8, 0.08);
+  border: 1px solid rgba(234, 179, 8, 0.15);
+  border-radius: 16px;
   color: var(--text-primary);
+  animation: fadeInWarning 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes fadeInWarning {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .warningIcon {
   color: #ca8a04;
-  font-size: 1.5rem;
+  margin-top: 2px;
+  /* Align with first line of text */
+}
+
+.warningContent {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
 }
 
 .warningText {
-  flex: 1;
-  font-size: 0.9rem;
+  font-size: 0.95rem;
+  line-height: 1.6;
+}
+
+.warningText p {
+  margin: 0;
+  color: var(--text-secondary);
+}
+
+.warningText p + p {
+  margin-top: 12px;
 }
 
 .warningTextFirstLine {
-  font-weight: 700;
+  font-weight: 800;
+  font-size: 1.1rem;
   color: #ca8a04;
+  margin-bottom: 8px;
+  letter-spacing: -0.01em;
+}
+
+.warningActions {
+  display: flex;
+  gap: 12px;
+}
+
+.warningBtn {
+  cursor: default !important;
 }
 
 .btn {

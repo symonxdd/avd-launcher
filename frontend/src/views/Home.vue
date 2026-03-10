@@ -2,25 +2,34 @@
   <div :class="styles.homeContainer">
 
     <div :class="styles.pageHeader">
-      <div v-if="androidEnvChecked && !androidHomeMissing" :class="styles.pageTitleContainer">
+      <div v-if="!sdkMissing" :class="styles.pageTitleContainer">
         <h2 :class="styles.pageTitle">Installed AVDs</h2>
         <span :class="styles.countBadge" v-show="store.avds.length">{{ store.avds.length }}</span>
       </div>
 
-      <div v-if="androidHomeMissing" :class="styles.androidHomeWarning">
+      <div v-if="sdkMissing" :class="styles.androidHomeWarning">
         <v-icon name="hi-exclamation" :class="styles.warningIcon" :scale="1.5" />
-        <div :class="styles.warningText">
-          <span :class="styles.warningTextFirstLine">ANDROID_HOME is not set</span><br />
-          This tool requires the Android SDK to be installed. Please set the ANDROID_HOME environment variable to
-          the path of your Android SDK installation.
+        <div :class="styles.warningContent">
+          <div :class="styles.warningText">
+            <div :class="styles.warningTextFirstLine">Android SDK not found</div>
+            <p>AVD Launcher could not locate your Android SDK in common locations nor via the ANDROID_HOME environment
+              variable.</p>
+            <p>Use the 'Select SDK Location' button to choose where your Android SDK is installed, or set the
+              ANDROID_HOME environment variable to that location.</p>
+          </div>
+          <div :class="styles.warningActions">
+            <button :class="[styles.btn, styles.btnPrimary, styles.warningBtn]" @click="selectSdkPath">
+              Select SDK Location
+            </button>
+            <button v-if="isWindows" :class="[styles.btn, styles.btnSecondary, styles.warningBtn]" @click="openEnvVars">
+              Open Environment Variables
+            </button>
+          </div>
         </div>
-        <button v-if="isWindows" :class="[styles.btn, styles.btnSecondary]" @click="openEnvVars">
-          Open Environment Variables
-        </button>
       </div>
     </div>
 
-    <div v-show="store.avds.length" :class="styles.avdGrid">
+    <div v-show="store.avds.length && !sdkMissing" :class="styles.avdGrid">
       <div v-for="avd in store.avds" :key="avd.name"
         :class="[styles.avdCard, { [styles.running]: avd.state === AvdState.RUNNING }]" @mouseenter="avd.hover = true"
         @mouseleave="avd.hover = false">
@@ -122,7 +131,7 @@
 
 <script setup>
 import { ref, onMounted, onBeforeUnmount, nextTick } from 'vue'
-import { ListAVDs, StartAVD, StopAVD, ListRunningAVDs, GetAndroidSdkEnv, OpenEnvironmentVariables, RenameAVD, DeleteAVD } from '../../wailsjs/go/app/App'
+import { ListAVDs, StartAVD, StopAVD, ListRunningAVDs, GetAndroidSdkEnv, OpenEnvironmentVariables, RenameAVD, DeleteAVD, SelectAndSaveSdkPath } from '../../wailsjs/go/app/App'
 import { useAvdStore } from '../stores/avdStore'
 import { AvdState } from '../enums/avdState'
 import { getStateClass } from '../utils/helper'
@@ -147,7 +156,7 @@ const menuPosition = ref({ x: 0, y: 0 })
 const toastMessage = ref('')
 let toastTimeout = null
 
-const androidHomeMissing = ref(false)
+const sdkMissing = ref(false)
 const androidEnvChecked = ref(false)
 
 const isWindows = navigator.userAgent.includes('Windows')
@@ -215,6 +224,67 @@ async function openEnvVars() {
   } catch (err) {
     showToast('Failed to open environment settings ❌')
     console.error(err)
+  }
+}
+
+async function selectSdkPath() {
+  try {
+    const path = await SelectAndSaveSdkPath()
+    if (path) {
+      sdkMissing.value = false
+      await initData()
+    }
+  } catch (err) {
+    showToast(`${err}`)
+    console.error(err)
+  }
+}
+
+async function initData() {
+  try {
+    const env = await GetAndroidSdkEnv()
+    // env = '' // for debug purposes
+
+    // TEMPORARILY FORCE THE WARNING FOR TESTING:
+    // sdkMissing.value = true;
+    // store.avds = [];
+    // return;
+
+    if (!env.ANDROID_HOME || env.ANDROID_HOME === '') {
+      sdkMissing.value = true
+      store.avds = [] // Clear any stale AVDs
+      return
+    }
+
+    sdkMissing.value = false
+
+    const avds = await ListAVDs()
+    const runningAvds = await ListRunningAVDs()
+
+    avds.forEach(name => {
+      const isRunning = runningAvds?.includes(name)
+
+      // If already in store, update its state
+      const existing = store.avds.find(a => a.name === name)
+      if (existing) {
+        store.updateAvdStatus(name, {
+          state: isRunning ? AvdState.RUNNING : AvdState.POWERED_OFF
+        })
+      } else {
+        // Otherwise, add it
+        store.avds.push({
+          name,
+          state: isRunning ? AvdState.RUNNING : AvdState.POWERED_OFF,
+          hover: false
+        })
+      }
+    })
+  } catch (err) {
+    showToast(`Error... ${err}`)
+    console.log(err);
+    store.avds = []
+  } finally {
+    androidEnvChecked.value = true
   }
 }
 
@@ -298,49 +368,7 @@ function onClickOutside(event) {
 }
 
 onMounted(async () => {
-  try {
-    const env = await GetAndroidSdkEnv()
-    // env = '' // for debug purposes
-
-    if (!env.ANDROID_HOME || env.ANDROID_HOME === '') {
-      androidHomeMissing.value = true
-      return
-    }
-  } catch (error) {
-    console.log('Error while running GetAndroidSdkEnv():', error);
-  }
-  finally {
-    androidEnvChecked.value = true
-  }
-
-  try {
-    const avds = await ListAVDs()
-    const runningAvds = await ListRunningAVDs()
-
-    avds.forEach(name => {
-      const isRunning = runningAvds?.includes(name)
-
-      // If already in store, update its state
-      const existing = store.avds.find(a => a.name === name)
-      if (existing) {
-        store.updateAvdStatus(name, {
-          state: isRunning ? AvdState.RUNNING : AvdState.POWERED_OFF
-        })
-      } else {
-        // Otherwise, add it
-        store.avds.push({
-          name,
-          state: isRunning ? AvdState.RUNNING : AvdState.POWERED_OFF,
-          hover: false
-        })
-      }
-    })
-  } catch (err) {
-    showToast(`Error... ${err}`)
-    console.log(err);
-    store.avds = []
-  }
-
+  await initData()
   document.addEventListener('click', onClickOutside)
 })
 

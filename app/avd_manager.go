@@ -14,55 +14,64 @@ import (
 	"github.com/wailsapp/wails/v2/pkg/runtime"
 )
 
-// Retrieves list installed AVDs
+// Retrieves list of installed AVDs
 func (a *App) ListAVDs() ([]string, error) {
-	// Step 1: Get the path to the Android emulator executable.
+	// Step 1: Attempt fast discovery by reading .ini files directly from the AVD directory.
+	// This avoids the overhead of spawning a Java CLI tool.
+	avdDir, err := helper.GetAvdDirectory()
+	if err == nil {
+		files, err := os.ReadDir(avdDir)
+		if err == nil {
+			var avds []string
+			for _, file := range files {
+				if !file.IsDir() && strings.HasSuffix(file.Name(), ".ini") {
+					// Filename is "AVD_Name.ini", we just want "AVD_Name"
+					name := strings.TrimSuffix(file.Name(), ".ini")
+					avds = append(avds, name)
+				}
+			}
+			if len(avds) > 0 {
+				fmt.Printf("Found %d AVDs via fast discovery: %v\n", len(avds), avds)
+				return avds, nil
+			}
+		}
+	}
+
+	// Step 2: Fallback to the original emulator command if filesystem discovery fails or finds nothing.
+	fmt.Println("Fast AVD discovery failed or found nothing, falling back to emulator -list-avds")
+
 	emulatorPath, err := helper.GetEmulatorPath()
 	if err != nil {
-		// If we fail to get the emulator path, return the error immediately.
 		return nil, err
 	}
 
-	// Step 2: Prepare the command to list available AVDs.
 	cmd := helper.NewCommand(emulatorPath, "-list-avds")
-
-	// Ensure the command inherits the environment variables of the current process.
 	cmd.Env = os.Environ()
 
-	// Step 3: Execute the command and capture its output.
 	out, err := cmd.Output()
 	if err != nil {
-		// If there's an error running the command, return a descriptive error.
 		return nil, fmt.Errorf("error running emulator command: %s", err.Error())
 	}
 
-	// Step 4: Initialize a slice to store the list of AVD names.
 	var avds []string
-
-	// Step 5: Use a scanner to process the output line by line.
 	scanner := bufio.NewScanner(bytes.NewReader(out))
 	for scanner.Scan() {
-		// Retrieve the current line and trim any leading/trailing whitespace (including \r, \n, or spaces).
 		line := strings.TrimSpace(scanner.Text())
-
-		// If the line is not empty, add it to the list of AVDs.
 		if line != "" {
 			avds = append(avds, line)
 		}
 	}
 
-	// Step 6: Check if any error occurred while scanning the output.
 	if err := scanner.Err(); err != nil {
-		// If an error occurred during scanning, return it.
 		return nil, fmt.Errorf("error reading command output: %s", err.Error())
 	}
 
-	// Step 7: If no AVDs were found, return a helpful error message.
 	if len(avds) == 0 {
 		return nil, fmt.Errorf("no AVDs found. Please create an AVD first")
 	}
 
-	// Step 8: Return the list of AVD names.
+	fmt.Printf("Found %d AVDs via fallback discovery: %v\n", len(avds), avds)
+
 	return avds, nil
 }
 

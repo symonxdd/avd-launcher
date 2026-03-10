@@ -24,10 +24,17 @@ type AppConfig struct {
 }
 
 func GetConfigPath() string {
-	dir, err := os.UserConfigDir()
-	if err != nil {
-		dir = os.TempDir()
+	// 🧠 On Windows, os.UserConfigDir() returns AppData\Roaming, but we want AppData\Local for this app's settings.
+	dir := os.Getenv("LOCALAPPDATA")
+	if dir == "" {
+		// Fallback for non-Windows or if LOCALAPPDATA is missing
+		var err error
+		dir, err = os.UserConfigDir()
+		if err != nil {
+			dir = os.TempDir()
+		}
 	}
+
 	appDir := filepath.Join(dir, "avd-launcher")
 	os.MkdirAll(appDir, 0755)
 	return filepath.Join(appDir, "config.json")
@@ -43,6 +50,21 @@ func SaveSdkPath(path string) error {
 	return os.WriteFile(cfgPath, data, 0644)
 }
 
+// Checks if a path looks like a valid Android SDK (contains platform-tools or emulator)
+func IsValidSdkPath(path string) bool {
+	if path == "" {
+		return false
+	}
+	// Check for platform-tools or emulator directory
+	if _, err := os.Stat(filepath.Join(path, "platform-tools")); err == nil {
+		return true
+	}
+	if _, err := os.Stat(filepath.Join(path, "emulator")); err == nil {
+		return true
+	}
+	return false
+}
+
 // Resolves ANDROID_HOME or returns a default Windows path
 func GetAndroidSdkPath() string {
 	// 1. Check custom config first
@@ -50,14 +72,32 @@ func GetAndroidSdkPath() string {
 	if data, err := os.ReadFile(cfgPath); err == nil {
 		var cfg AppConfig
 		if err := json.Unmarshal(data, &cfg); err == nil && cfg.CustomSdkPath != "" {
-			return cfg.CustomSdkPath
+			if IsValidSdkPath(cfg.CustomSdkPath) {
+				return cfg.CustomSdkPath
+			}
 		}
 	}
 
+	// 2. Check ANDROID_HOME env var
 	sdkPath := os.Getenv("ANDROID_HOME")
-	if sdkPath != "" {
+	if IsValidSdkPath(sdkPath) {
 		return sdkPath
 	}
+
+	// 3. Check common Windows default locations
+	localAppData := os.Getenv("LOCALAPPDATA")
+	commonPaths := []string{
+		filepath.Join(localAppData, "Android", "Sdk"),
+		`C:\Android\Sdk`,
+		`C:\Program Files (x86)\Android\android-sdk`,
+	}
+
+	for _, path := range commonPaths {
+		if IsValidSdkPath(path) {
+			return path
+		}
+	}
+
 	return ""
 }
 
@@ -97,6 +137,22 @@ func GetEmulatorPath() (string, error) {
 		return "", fmt.Errorf("emulator not found at: %s", emulatorPath)
 	}
 	return emulatorPath, nil
+}
+
+// Returns the platform-specific AVD storage directory
+func GetAvdDirectory() (string, error) {
+	// Usually ~/.android/avd or %USERPROFILE%\.android\avd
+	home, err := os.UserHomeDir()
+	if err != nil {
+		return "", fmt.Errorf("could not determine user home directory: %w", err)
+	}
+
+	avdPath := filepath.Join(home, ".android", "avd")
+	if _, err := os.Stat(avdPath); os.IsNotExist(err) {
+		return "", fmt.Errorf("AVD directory not found at: %s", avdPath)
+	}
+
+	return avdPath, nil
 }
 
 func ResolvePortForAVD(avdName string) (int, error) {

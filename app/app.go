@@ -4,6 +4,9 @@ import (
 	"avd-launcher/app/helper"
 	"avd-launcher/app/models"
 	"context"
+	"fmt"
+
+	"github.com/wailsapp/wails/v2/pkg/runtime"
 )
 
 // The App struct (think of it like an object/class in other languages)
@@ -28,4 +31,29 @@ func (a *App) Startup(ctx context.Context) {
 func (a *App) OpenEnvironmentVariables() error {
 	cmd := helper.NewCommand("rundll32", "sysdm.cpl,EditEnvironmentVariables")
 	return cmd.Run()
+}
+
+// Opens a directory selection dialog to choose the Android SDK path and saves it
+func (a *App) SelectAndSaveSdkPath() (string, error) {
+	path, err := runtime.OpenDirectoryDialog(a.ctx, runtime.OpenDialogOptions{
+		Title: "Select Android SDK Location",
+	})
+	if err != nil {
+		return "", err
+	}
+
+	if path == "" {
+		return "", nil // User cancelled
+	}
+
+	if !helper.IsValidSdkPath(path) {
+		return "", fmt.Errorf("invalid Android SDK path: missing platform-tools or emulator")
+	}
+
+	err = helper.SaveSdkPath(path)
+	if err != nil {
+		return "", err
+	}
+
+	return path, nil
 }

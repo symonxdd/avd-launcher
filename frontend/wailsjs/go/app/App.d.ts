@@ -13,6 +13,8 @@ export function OpenEnvironmentVariables():Promise<void>;
 
 export function RenameAVD(arg1:string,arg2:string):Promise<void>;
 
+export function SelectAndSaveSdkPath():Promise<string>;
+
 export function StartAVD(arg1:string,arg2:boolean):Promise<string>;
 
 export function StopAVD(arg1:string):Promise<void>;

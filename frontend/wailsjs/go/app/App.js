@@ -26,6 +26,10 @@ export function RenameAVD(arg1, arg2) {
   return window['go']['app']['App']['RenameAVD'](arg1, arg2);
 }
 
+export function SelectAndSaveSdkPath() {
+  return window['go']['app']['App']['SelectAndSaveSdkPath']();
+}
+
 export function StartAVD(arg1, arg2) {
   return window['go']['app']['App']['StartAVD'](arg1, arg2);
 }
