@@ -276,7 +276,7 @@ async function initData() {
     store.avds = [];
     return;
 
-    if (!env.ANDROID_HOME || env.ANDROID_HOME === '') {
+    if (!env.path || env.path === '') {
       sdkMissing.value = true
       store.avds = [] // Clear any stale AVDs
       return

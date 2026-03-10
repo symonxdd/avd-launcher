@@ -33,29 +33,29 @@
 
         <div :class="styles.subGroupItems">
           <div v-if="androidSdkEnv"
-            :class="[styles.sdkStatusRow, { [styles.sdkFound]: !!androidSdkEnv.ANDROID_HOME, [styles.sdkMissing]: !androidSdkEnv.ANDROID_HOME }]">
+            :class="[styles.sdkStatusRow, { [styles.sdkFound]: !!androidSdkEnv.path, [styles.sdkMissing]: !androidSdkEnv.path }]">
             <div :class="styles.statusInfo">
               <div :class="styles.statusLabelRow">
                 <span :class="styles.statusLabel">Android SDK Status</span>
-                <div v-if="androidSdkEnv.SOURCE" :class="styles.infoTooltipTrigger">
+                <div v-if="androidSdkEnv.source" :class="styles.infoTooltipTrigger">
                   <v-icon name="hi-information-circle" :class="styles.infoIcon" />
                   <div :class="styles.infoTooltip">
-                    <template v-if="androidSdkEnv.SOURCE === 'custom path'">
+                    <template v-if="androidSdkEnv.source === 'user selected path'">
                       Detected via
                       <span :class="styles.configLink" @click="OpenConfigFolder">
-                        custom path
+                        user selected path
                       </span>
                     </template>
                     <template v-else>
-                      Detected via {{ androidSdkEnv.SOURCE }}
+                      Detected via {{ androidSdkEnv.source }}
                     </template>
                   </div>
                 </div>
               </div>
-              <span :class="styles.statusPath">{{ androidSdkEnv.ANDROID_HOME || 'Not found' }}</span>
+              <span :class="styles.statusPath">{{ androidSdkEnv.path || 'Not found' }}</span>
             </div>
             <div :class="styles.statusIconBox">
-              <span v-if="androidSdkEnv.ANDROID_HOME">✔</span>
+              <span v-if="androidSdkEnv.path">✔</span>
               <span v-else>✖</span>
             </div>
           </div>

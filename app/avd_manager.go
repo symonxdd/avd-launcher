@@ -271,14 +271,11 @@ func (a *App) StopAVD(name string) error {
 }
 
 // Retrieves the Android SDK environment variable and its resolution source
-func (a *App) GetAndroidSdkEnv() map[string]string {
+func (a *App) GetAndroidSdkEnv() helper.SdkInfo {
 	sdkInfo := helper.GetAndroidSdkPath()
-	fmt.Printf("Resolved ANDROID_HOME: %s (via %s)\n", sdkInfo.Path, sdkInfo.Source)
+	fmt.Printf("Resolved Android SDK: %s (via %s)\n", sdkInfo.Path, sdkInfo.Source)
 
-	return map[string]string{
-		"ANDROID_HOME": sdkInfo.Path,
-		"SOURCE":       sdkInfo.Source,
-	}
+	return sdkInfo
 }
 
 // Renames an existing AVD using avdmanager

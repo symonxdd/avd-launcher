@@ -73,7 +73,7 @@ func IsValidSdkPath(path string) bool {
 	return false
 }
 
-// Resolves ANDROID_HOME and returns the path along with how it was resolved
+// Resolves the Android SDK location and returns the path along with how it was resolved
 func GetAndroidSdkPath() SdkInfo {
 	// 1. Check custom config first
 	cfgPath := GetConfigPath()
@@ -81,7 +81,7 @@ func GetAndroidSdkPath() SdkInfo {
 		var cfg AppConfig
 		if err := json.Unmarshal(data, &cfg); err == nil && cfg.CustomSdkPath != "" {
 			if IsValidSdkPath(cfg.CustomSdkPath) {
-				return SdkInfo{Path: cfg.CustomSdkPath, Source: "custom path"}
+				return SdkInfo{Path: cfg.CustomSdkPath, Source: "user selected path"}
 			}
 		}
 	}
