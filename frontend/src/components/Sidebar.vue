@@ -1,86 +1,172 @@
 <template>
-  <nav class="sidebar">
-    <TitleLogo />
+  <aside class="sidebar">
+    <div class="topGroup">
+      <div class="logoContainer">
+        <img src="../assets/images/appicon-no-bg.png" alt="App logo" class="logoImage" />
+        <div class="logoTextContainer">
+          <span class="logoText">AVD Launcher</span>
+          <span v-if="isDev" class="devIndicator">(dev)</span>
+        </div>
+      </div>
+      <div class="sidebar-top">
+        <router-link to="/" class="sidebar-item" :class="{ active: $route.path === '/' }">
+          <v-icon name="hi-device-mobile" class="icon" />
+          <span>AVD</span>
+        </router-link>
 
-    <ul class="nav-list">
-      <li class="nav-item" :class="{ active: $route.path === '/' }" @click="$router.push('/')">
-        <i class="bi bi-house-door nav-icon"></i>
-        <span class="nav-text">AVDs</span>
-      </li>
-      <li class="nav-item" :class="{ active: $route.path === '/logs' }" @click="$router.push('/logs')">
-        <i class="bi bi-terminal nav-icon"></i>
-        <span class="nav-text">Logs</span>
-      </li>
-    </ul>
-
-    <!-- Settings at the bottom -->
-    <div class="nav-bottom">
-      <li class="nav-item" :class="{ active: $route.path === '/settings' }" @click="$router.push('/settings')"
-        :style="{ marginBottom: '0' }">
-        <i class="bi bi-gear nav-icon"></i>
-        <span class="nav-text">Settings</span>
-      </li>
+        <router-link to="/logs" class="sidebar-item" :class="{ active: $route.path === '/logs' }">
+          <v-icon name="hi-document-text" class="icon" />
+          <span>Logs</span>
+        </router-link>
+      </div>
     </div>
-  </nav>
+
+    <div class="bottomGroup">
+      <div class="sidebar-bottom">
+        <router-link to="/settings" class="sidebar-item" :class="{ active: $route.path === '/settings' }">
+          <v-icon name="hi-cog" class="icon" />
+          <span>Settings</span>
+        </router-link>
+      </div>
+    </div>
+  </aside>
 </template>
 
 <script setup>
-import TitleLogo from './TitleLogo.vue'
+// Icons are registered globally in main.js
+const isDev = import.meta.env.MODE === 'development';
 </script>
 
 <style scoped>
 .sidebar {
-  width: 220px;
-  min-width: 220px;
-  background-color: transparent;
-  height: 100vh;
+  width: 230px;
+  background-color: var(--bg-app);
   display: flex;
   flex-direction: column;
-  padding: 15px 0 15px 15px;
+  justify-content: space-between;
+  padding: 0.5rem 0;
+  height: 100%;
 }
 
-.nav-list {
-  flex-grow: 1;
-  /* 👈 Important: pushes the nav-bottom to the bottom */
-  list-style: none;
-  padding: 0;
-  margin-top: 30px;
-}
-
-.nav-bottom {
-  margin-top: auto;
-  /* 👈 Pushes this div to the bottom */
-}
-
-.nav-item {
+.logoContainer {
   display: flex;
   align-items: center;
-  padding: 10px 15px;
-  color: var(--nav-item-color);
+  justify-content: center;
+  gap: 10px;
+  padding: 1.5rem 1.25rem 2rem 1.25rem;
+  transition: transform 0.3s ease-in-out;
+  transform: scale(1);
+}
+
+.logoContainer:hover {
+  animation: pulseGlow 3s ease-in-out infinite;
+}
+
+@keyframes pulseGlow {
+
+  0%,
+  100% {
+    transform: scale(1);
+    filter: brightness(1);
+  }
+
+  50% {
+    transform: scale(1.05);
+    filter: brightness(1.2);
+  }
+}
+
+.logoImage {
+  width: 32px;
+  height: 32px;
+  object-fit: contain;
+}
+
+.logoText {
+  font-size: 1.2rem;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.devIndicator {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  font-size: 0.7rem;
+  color: var(--text-secondary);
+  font-weight: 400;
+  line-height: 1;
+  margin-top: -4px;
+  white-space: nowrap;
+}
+
+.logoTextContainer {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.sidebar-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 20px;
+  margin: 4px 8px;
+  color: var(--text-secondary);
+  text-decoration: none;
+  font-weight: 500;
   font-size: 0.95rem;
-  border-radius: 6px;
-  margin-bottom: 10px;
-  transition: background 0.2s, color 0.2s;
+  border: 1px solid transparent;
+  border-radius: 16px;
+  cursor: default;
+  -webkit-user-drag: none;
+  position: relative;
+  transition: background 0.2s ease, color 0.2s ease, border 0.2s ease;
 }
 
-.nav-item:hover {
-  background-color: var(--nav-item-hover-bg);
-  color: var(--nav-item-hover-color);
+.sidebar-item > .icon,
+.sidebar-item > span {
+  transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), color 0.2s ease;
 }
 
-.nav-item.active:hover {
-  background-color: var(--nav-item-hover-bg);
-  color: var(--nav-item-active-color);
+.sidebar-item:hover > .icon,
+.sidebar-item:hover > span {
+  transform: translateX(4px);
 }
 
-.nav-item.active {
-  background-color: transparent;
-  color: var(--nav-item-active-color);
-  font-weight: bold;
+.sidebar-item:hover {
+  background: var(--bg-card-active);
+  color: var(--text-primary);
+  border: 1px solid var(--border-strong);
 }
 
-.nav-icon {
-  font-size: 1rem;
-  margin-right: 8px;
+.sidebar-item.active {
+  background: var(--bg-card-active);
+  color: var(--text-primary);
+  border: 1px solid var(--border-strong);
+}
+
+.icon {
+  font-size: 18px;
+  color: var(--text-secondary);
+  width: 18px;
+  height: 18px;
+}
+
+.sidebar-item:hover .icon,
+.sidebar-item.active .icon {
+  color: var(--text-primary);
+}
+
+.topGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.bottomGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 }
 </style>

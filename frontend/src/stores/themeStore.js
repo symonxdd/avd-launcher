@@ -12,10 +12,19 @@ export const useThemeStore = defineStore('theme', () => {
     const themeToApply =
       theme.value === 'system' ? (systemPrefersDark ? 'dark' : 'light') : theme.value
 
+    // Temporarily disable transitions to prevent flickering
+    root.classList.add('no-transitions')
+
     root.classList.remove('theme-light', 'theme-dark')
     root.classList.add(`theme-${themeToApply}`)
 
     applyTrueBlack(themeToApply)
+
+    // Force reflow and remove the class
+    window.getComputedStyle(root).opacity
+    requestAnimationFrame(() => {
+      root.classList.remove('no-transitions')
+    })
 
     if (!hasSetupSystemListener) {
       window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
@@ -36,11 +45,19 @@ export const useThemeStore = defineStore('theme', () => {
           ? 'dark'
           : 'light'
         : theme.value)
+
+    root.classList.add('no-transitions')
+
     if (trueBlack.value && currentTheme === 'dark') {
       root.classList.add('true-black')
     } else {
       root.classList.remove('true-black')
     }
+
+    window.getComputedStyle(root).opacity
+    requestAnimationFrame(() => {
+      root.classList.remove('no-transitions')
+    })
   }
 
   const initTheme = () => {

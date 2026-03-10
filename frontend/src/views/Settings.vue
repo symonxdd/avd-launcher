@@ -1,65 +1,69 @@
 <template>
   <div class="settings-container">
-    <div class="settings-main">
-      <h2 class="page-title">Settings</h2>
-
-      <!-- Theming Setting -->
-      <div class="setting-group theme-setting-group">
+    <h2 class="page-title">Settings</h2>
+    <div class="settings-grid">
+      <!-- --- Interface Settings --- -->
+      <div class="settings-group">
         <h5 class="label-heading">
-          Theme
+          <v-icon name="hi-view-grid" class="heading-icon" />
+          Interface
         </h5>
-        <small class="label-subtext">Choose app appearance</small>
-        <div class="btn-group">
-          <button class="btn" @click="setTheme('light')"
-            :class="{ active: themeStore.theme === 'light' }">Light</button>
-          <button class="btn" @click="setTheme('dark')" :class="{ active: themeStore.theme === 'dark' }">Dark</button>
-          <button class="btn" @click="setTheme('system')"
-            :class="{ active: themeStore.theme === 'system' }">System</button>
-        </div>
 
-        <!-- ✅ Place the True Black toggle here -->
-        <div v-if="isDarkMode" class="true-black-toggle">
-          <label class="switch">
-            <input type="checkbox" :checked="themeStore.trueBlack" @change="themeStore.toggleTrueBlack" />
-            <span class="slider"></span>
-          </label>
-          <span class="toggle-label">Enable True Black</span>
+        <div class="sub-group-items">
+          <div v-if="isDarkMode" class="toggle-row">
+            <label for="trueBlackToggle" class="toggle-label">Enable True Black</label>
+            <label class="switch">
+              <input id="trueBlackToggle" type="checkbox" :checked="themeStore.trueBlack"
+                @change="themeStore.toggleTrueBlack" />
+              <span class="slider"></span>
+            </label>
+          </div>
+          <div v-else class="empty-state-text">
+            Switch to Dark Mode to enable True Black.
+          </div>
+        </div>
+      </div>
+
+      <!-- --- System Settings --- -->
+      <div class="settings-group">
+        <h5 class="label-heading">
+          <v-icon name="hi-adjustments" class="heading-icon" />
+          System
+        </h5>
+
+        <div class="sub-group-items">
+          <div v-if="androidSdkEnv" class="sdk-status-row"
+            :class="{ 'sdk-found': !!androidSdkEnv.ANDROID_HOME, 'sdk-missing': !androidSdkEnv.ANDROID_HOME }">
+            <div class="status-info">
+              <span class="status-label">Android SDK Status</span>
+              <span class="status-path">{{ androidSdkEnv.ANDROID_HOME || 'Not found' }}</span>
+            </div>
+            <div class="status-icon-box">
+              <span v-if="androidSdkEnv.ANDROID_HOME">✔</span>
+              <span v-else>✖</span>
+            </div>
+          </div>
         </div>
       </div>
     </div>
 
-    <!-- App Info Section -->
-    <div class="app-info-section">
-      <div v-if="androidSdkEnv" class="sdk-status"
-        :class="{ 'sdk-found': !!androidSdkEnv.ANDROID_HOME, 'sdk-missing': !androidSdkEnv.ANDROID_HOME }"
-        :data-tooltip="sdkTooltipText">
-        <div class="status-icon">
-          <span v-if="androidSdkEnv.ANDROID_HOME">✔</span>
-          <span v-else>✖</span>
-        </div>
-        <div class="status-text">
-          <strong>Android SDK: </strong>
-          <span>
-            {{ androidSdkEnv.ANDROID_HOME || 'Android SDK not installed/found' }}
-          </span>
-        </div>
-      </div>
-
-    </div>
-
-    <!-- Footer Section -->
+    <!-- --- Footer Section --- -->
     <div class="app-footer">
-      <div class="footer-section footer-left app-info-meta">
-        v{{ appVersion }} {{ environment }}
+      <div class="footer-meta">
+        v{{ appVersion }} ({{ environment }}{{ remoteVersion ? (isUpToDate ? ', latest' : ', update available') : '' }})
+        <span class="dot-separator">•</span>
+        Powered by Vue, Go & Wails
       </div>
-      <div class="footer-section footer-center app-info-credits">
-        Powered by
-        <a href="https://wails.io/" target="_blank" rel="noopener" class="wails-link">Wails</a>,
-        <a href="https://go.dev/" target="_blank" rel="noopener" class="go-link">Go</a> and
-        <a href="https://vuejs.org/" target="_blank" rel="noopener" class="vue-link">Vue</a>
-      </div>
-      <div class="footer-section footer-right app-info-credits">
-        Made with ❤️ by Symon from Belgium
+
+      <div class="signature">
+        <div class="tooltip-trigger">
+          <span class="dictionary-link">Sedulously</span>
+          <div class="custom-tooltip">
+            <span class="tooltip-type">(adverb)</span> — in a way that shows great care and persistent effort.
+            <br />
+            <small style="opacity: 0.7; margin-top: 4px; display: block;">Synonyms: diligently, persistently</small>
+          </div>
+        </div> engineered with <span class="heart">❤️‍🩹</span> by Symon
       </div>
     </div>
   </div>
@@ -72,23 +76,9 @@ import { useThemeStore } from '../stores/themeStore'
 
 const themeStore = useThemeStore()
 const androidSdkEnv = ref(null)
-const appVersion = __APP_VERSION__ || 'v1.0.0'
-const environment = import.meta.env.MODE === 'development' ? '(dev)' : '(prod)'
-
-const sdkTooltipText = computed(() => {
-  if (!androidSdkEnv.value) return ''
-  return androidSdkEnv.value.ANDROID_HOME
-    ? 'SDK found through ANDROID_HOME env variable'
-    : 'This tool requires the Android SDK to be installed and the ANDROID_HOME env variable to be set'
-})
-
-const fetchAndroidSdkEnv = async () => {
-  try {
-    androidSdkEnv.value = await GetAndroidSdkEnv()
-  } catch (error) {
-    console.error('Error while running GetAndroidSdkEnv():', error)
-  }
-}
+const appVersion = typeof __APP_VERSION__ !== "undefined" ? __APP_VERSION__ : "1.0.0"
+const environment = import.meta.env.MODE === 'development' ? 'dev' : 'release'
+const remoteVersion = ref(null) // Not implemented in AVD Launcher yet
 
 const isDarkMode = computed(() => {
   if (themeStore.theme === 'dark') return true
@@ -98,8 +88,14 @@ const isDarkMode = computed(() => {
   return false
 })
 
-const setTheme = (mode) => {
-  themeStore.setTheme(mode)
+const isUpToDate = computed(() => true) // Placeholder for now
+
+const fetchAndroidSdkEnv = async () => {
+  try {
+    androidSdkEnv.value = await GetAndroidSdkEnv()
+  } catch (error) {
+    console.error('Error while running GetAndroidSdkEnv():', error)
+  }
 }
 
 onMounted(async () => {
@@ -113,256 +109,95 @@ onMounted(async () => {
   display: flex;
   flex-direction: column;
   height: 100%;
-  padding: 20px 0px 0 0;
-  color: var(--text-color);
+  color: var(--text-primary);
+  padding: 20px 0 0 0;
 }
 
-/* --- Page Title --- */
 .page-title {
   font-size: 1.55rem;
-  margin-bottom: 16px;
+  margin-bottom: 24px;
   color: var(--page-title-color);
 }
 
-/* --- Environment Variable Block --- */
-.setting-item {
+/* --- Vertical Layout for Groups --- */
+.settings-grid {
   display: flex;
   flex-direction: column;
-  margin-bottom: 15px;
-  padding-bottom: 15px;
+  gap: 16px;
+  justify-content: flex-start;
+  align-items: stretch;
+  padding-bottom: 24px;
 }
 
-.setting-title {
-  font-weight: 600;
-  font-size: 1.05rem;
-}
-
-.setting-description {
-  font-size: 0.85rem;
-  color: var(--text-color);
-}
-
-.env-variable {
-  margin-top: 8px;
-  font-size: 0.85rem;
-  color: var(--text-color);
-}
-
-.env-list {
-  list-style-type: disc;
-  padding-left: 20px;
-  color: var(--text-color);
-}
-
-.env-list li {
-  margin-bottom: 6px;
-}
-
-/* --- Theming Section --- */
-.setting-group {
-  background-color: var(--background-secondary);
-  /* border: 1px solid var(--border-color); */
-  border-radius: 12px;
-  padding: 20px;
-  margin-bottom: 20px;
-  width: fit-content;
+/* --- Shared Group Styling --- */
+.settings-group {
+  padding: 24px;
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: 24px;
+  flex: 0 0 auto;
+  min-width: 280px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  box-sizing: border-box;
+  transition: border-color 0.2s ease;
 }
 
 .label-heading {
-  font-size: 0.95rem;
-  font-weight: 500;
-  color: var(--text-color);
-}
-
-.label-subtext {
-  display: block;
-  font-size: 0.8rem;
-  color: var(--secondary-text-color);
-  margin-bottom: 10px;
-}
-
-.btn-group {
-  display: flex;
-  gap: 10px;
-  flex-wrap: wrap;
-}
-
-.btn {
-  background-color: transparent;
-  color: var(--text-color);
+  margin: 0;
   display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 8px 14px;
-  font-weight: 400;
-  font-family: Nunito, sans-serif;
-  border-radius: 8px;
-  border: 1px solid var(--border-color);
-  transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  letter-spacing: -0.01em;
 }
 
-.btn:hover {
-  background-color: var(--btn-hover-bg);
+.heading-icon {
+  color: var(--text-primary);
+  margin-right: 12px;
+  font-size: 1.1rem;
+  opacity: 0.8;
+  flex-shrink: 0;
 }
 
-.btn.active {
-  border-color: #8e44ad;
-  background-color: rgba(142, 68, 173, 0.2);
-  color: #8e44ad;
-}
-
-/* --- Footer Layout --- */
-.app-footer {
+.sub-group-items {
   display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* --- Toggles --- */
+.toggle-row {
+  display: flex;
+  align-items: center;
   justify-content: space-between;
-  align-items: center;
-  flex-wrap: wrap;
-  padding-top: 15px;
-  font-size: 0.75rem;
-  background-color: var(--background-secondary);
-  color: var(--secondary-text-color);
-}
-
-.footer-section {
-  padding: 5px 10px;
-}
-
-.footer-left {
-  order: 2;
-}
-
-.footer-center {
-  order: 1;
-  text-align: center;
-}
-
-.footer-right {
-  order: 3;
-  text-align: right;
-}
-
-.app-info-section {
-  /* margin-top: 20px;
-  padding: 16px;
-  background-color: var(--background-secondary);
-  border-radius: 12px;
-  width: fit-content;
+  gap: 12px;
   font-size: 0.9rem;
-  color: var(--text-color); */
-
-  margin-top: auto;
-  /* Push it to the bottom of the flex container */
-  margin-bottom: 20px;
-  /* Spacing above the footer */
-  padding: 16px;
-  background-color: var(--background-secondary);
-  border-radius: 12px;
-  width: fit-content;
-  font-size: 0.9rem;
-  color: var(--text-color);
-}
-
-/* Tooltip via data attribute */
-.sdk-status::after {
-  content: attr(data-tooltip);
-  position: absolute;
-  bottom: calc(100% + 6px);
-  left: 50%;
-  transform: translateX(-50%);
-  background-color: var(--tooltip-bg, #333);
-  color: var(--tooltip-text, #fff);
-  font-weight: 500;
-  padding: 6px 10px;
-  border-radius: 6px;
-  font-size: 0.75rem;
-  white-space: nowrap;
-  z-index: 1000;
-  opacity: 0;
-  pointer-events: none;
-  transition: none;
-}
-
-/* Show tooltip only on hover */
-.sdk-status:hover::after {
-  opacity: 1;
-}
-
-.sdk-status {
-  position: relative;
-  cursor: default;
-
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 8px 12px;
-  border-radius: 999px;
-  transition: background-color 0.3s ease-in-out;
-}
-
-.sdk-found {
-  background-color: rgba(46, 204, 113, 0.15);
-  /* light green bg */
-  color: #2ecc71;
-  /* green text */
-}
-
-.sdk-missing {
-  background-color: rgba(231, 76, 60, 0.15);
-  /* light red bg */
-  color: #e74c3c;
-  /* red text */
-}
-
-.status-icon {
-  width: 1.1rem;
-  height: 1.1rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: bold;
-  cursor: default;
-  position: relative;
-}
-
-.status-text {
-  font-family: 'Consolas', monospace;
-}
-
-.status-text span {
-  font-weight: 400;
-  color: inherit;
-}
-
-/* Light/Dark tooltip support */
-:root {
-  --tooltip-bg: #333;
-  --tooltip-text: #fff;
-}
-
-body[data-theme='light'] {
-  --tooltip-bg: #eee;
-  --tooltip-text: #111;
-}
-
-.true-black-toggle {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-top: 16px;
-  font-size: 0.9rem;
-  color: var(--text-color);
+  color: var(--text-primary);
 }
 
 .toggle-label {
   font-weight: 500;
+  user-select: none;
+  cursor: default;
 }
 
-/* Material 3-like switch */
+.empty-state-text {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  font-style: italic;
+}
+
+/* --- Switch Control (Material 3 style) --- */
 .switch {
   position: relative;
   display: inline-block;
-  width: 40px;
-  height: 22px;
+  width: 38px;
+  height: 20px;
+  flex-shrink: 0;
+  cursor: default;
 }
 
 .switch input {
@@ -373,56 +208,173 @@ body[data-theme='light'] {
 
 .slider {
   position: absolute;
-  cursor: pointer;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: var(--border-color);
-  transition: 0.3s;
-  border-radius: 34px;
+  background-color: #515151;
+  border-radius: 999px;
+  transition: background-color 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.2);
 }
 
-.slider:before {
+.slider::before {
+  content: "";
   position: absolute;
-  content: '';
   height: 16px;
   width: 16px;
-  left: 3px;
-  bottom: 3px;
-  background-color: var(--bg-color);
-  transition: 0.3s;
+  left: 2px;
+  top: 2px;
+  background-color: #ffffff;
   border-radius: 50%;
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
-input:checked + .slider {
-  background-color: #8e44ad;
+.switch input:checked + .slider {
+  background: linear-gradient(135deg, #fbbb03 0%, #e21d0a 100%);
+  box-shadow: 0 0 8px rgba(226, 29, 10, 0.3);
 }
 
-input:checked + .slider:before {
+.switch input:checked + .slider::before {
   transform: translateX(18px);
 }
 
-
-/* --- Link Colors --- */
-.wails-link {
-  color: #df0000;
-  text-decoration: none;
+/* --- SDK Status Section --- */
+.sdk-status-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 14px;
+  border-radius: 16px;
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
 }
 
-.go-link {
-  color: #00add8;
-  text-decoration: none;
+.status-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
 }
 
-.vue-link {
-  color: #42b883;
-  text-decoration: none;
+.status-label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-primary);
 }
 
-.wails-link:hover,
-.go-link:hover,
-.vue-link:hover {
-  text-decoration: underline;
+.status-path {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  font-family: 'Consolas', monospace;
+  word-break: break-all;
+}
+
+.status-icon-box {
+  font-weight: bold;
+  font-size: 1rem;
+  padding-right: 12px;
+}
+
+.sdk-found .status-icon-box {
+  color: #2ecc71;
+}
+
+.sdk-missing .status-icon-box {
+  color: #e74c3c;
+}
+
+/* --- Footer Section --- */
+.app-footer {
+  margin-top: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 16px;
+  padding: 32px 0 24px;
+}
+
+.footer-meta {
+  font-size: 0.72rem;
+  color: var(--text-secondary);
+  font-weight: 400;
+  opacity: 0.5;
+  letter-spacing: 0.02em;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.dot-separator {
+  opacity: 0.6;
+}
+
+.signature {
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+  font-weight: 450;
+  opacity: 0.9;
+}
+
+.heart {
+  color: var(--color-primary);
+  margin: 0 2px;
+}
+
+/* Tooltips */
+.tooltip-trigger {
+  position: relative;
+  display: inline-block;
+  cursor: default;
+}
+
+.custom-tooltip {
+  position: absolute;
+  bottom: 125%;
+  left: 50%;
+  transform: translateX(-50%) translateY(4px);
+  width: 260px;
+  padding: 10px 14px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: 12px;
+  color: var(--text-primary);
+  font-size: 0.75rem;
+  line-height: 1.4;
+  text-align: center;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  pointer-events: none;
+  opacity: 0;
+  transition: all 0.25s ease;
+  z-index: 1000;
+  backdrop-filter: blur(8px);
+}
+
+.tooltip-trigger:hover .custom-tooltip {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+.tooltip-type {
+  font-style: italic;
+  margin-right: 4px;
+}
+
+.dictionary-link {
+  text-decoration: underline dotted color-mix(in srgb, currentColor 40%, transparent);
+  text-underline-offset: 3px;
+  transition: color 0.2s ease;
+}
+
+.dictionary-link:hover {
+  text-decoration-color: currentColor;
+}
+
+/* Responsive adjustment */
+@media (max-width: 768px) {
+  .settings-grid {
+    flex-direction: column;
+  }
 }
 </style>

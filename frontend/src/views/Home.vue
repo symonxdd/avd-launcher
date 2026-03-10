@@ -1,9 +1,11 @@
 <template>
   <div class="home-container">
 
-    <div class="page-title-container">
-      <h2 class="page-title" v-if="androidEnvChecked && !androidHomeMissing">Installed AVDs</h2>
-      <span class="count-badge" v-if="store.avds.length">{{ store.avds.length }}</span>
+    <div class="page-header">
+      <div v-if="androidEnvChecked && !androidHomeMissing" class="page-title-container">
+        <h2 class="page-title">Installed AVDs</h2>
+        <span class="count-badge" v-show="store.avds.length">{{ store.avds.length }}</span>
+      </div>
 
       <div v-if="androidHomeMissing" class="android-home-warning">
         <i class="bi bi-exclamation-triangle-fill warning-icon"></i>
@@ -23,10 +25,25 @@
         :class="{ 'avd-running': avd.state === AvdState.RUNNING }" @mouseenter="avd.hover = true"
         @mouseleave="avd.hover = false">
 
-        <!-- Three dots menu -->
-        <button v-if="avd.hover" class="menu-button" @click="toggleMenu(avd, $event)">
-          <i class="bi bi-three-dots"></i>
-        </button>
+        <!-- Card header: avatar + info (name) + menu -->
+        <div class="avd-card-header">
+          <div class="avd-avatar-container">
+            <div class="avd-avatar">{{ avd.name.charAt(0).toUpperCase() }}</div>
+          </div>
+          <div class="avd-name">{{ avd.name }}</div>
+          <button class="menu-button" :class="{ 'menu-visible': avd.hover }" @click="toggleMenu(avd, $event)">
+            <i class="bi bi-three-dots"></i>
+          </button>
+        </div>
+
+        <!-- Status indicator: dot + label (Flows under name/avatar) -->
+        <div class="avd-status" :class="getStateClass(avd.state)">
+          <div class="status-dot-container">
+            <span class="status-dot"></span>
+            <span class="status-pulse"></span>
+          </div>
+          <span class="status-label">{{ avd.state }}</span>
+        </div>
 
         <!-- Animated context menu -->
         <transition name="fade-fast">
@@ -37,27 +54,24 @@
           </div>
         </transition>
 
-        <div class="avd-name">{{ avd.name }}</div>
-
-        <div class="avd-status" :class="getStateClass(avd.state)">
-          {{ avd.state }}
-        </div>
-
-        <div class="avd-buttons">
-          <div class="avd-action-button">
-            <template v-if="avd.state === AvdState.POWERED_OFF">
-              <button class="icon-button" @click="startAVD(avd, false)">
-                <i class="bi bi-play-fill icon-start" title="Start AVD"></i>
-              </button>
-              <button class="icon-button icon-button-coldboot" @click="startAVD(avd, true)">
-                <i class="bi bi-arrow-repeat icon-coldboot" title="Cold Boot"></i>
-              </button>
-            </template>
-
-            <button class="icon-button" v-else :disabled="avd.state !== AvdState.RUNNING" @click="stopAVD(avd)">
-              <i class="bi bi-stop-fill icon-stop" title="Stop AVD"></i>
+        <!-- Premium Action buttons with labels -->
+        <div class="avd-actions">
+          <template v-if="avd.state === AvdState.POWERED_OFF">
+            <button class="action-btn-premium launch" @click="startAVD(avd, false)">
+              <i class="bi bi-play-fill"></i>
+              <span>Launch</span>
             </button>
-          </div>
+            <button class="action-btn-premium coldboot" @click="startAVD(avd, true)">
+              <i class="bi bi-snow"></i>
+              <span>Cold Boot</span>
+            </button>
+          </template>
+
+          <button class="action-btn-premium stop" v-else :disabled="avd.state !== AvdState.RUNNING"
+            @click="stopAVD(avd.name)">
+            <i class="bi bi-stop-fill"></i>
+            <span>Stop</span>
+          </button>
         </div>
       </div>
     </div>
@@ -163,13 +177,13 @@ const startAVD = async (avd, coldBoot = false) => {
   }
 }
 
-const stopAVD = async (avd) => {
+const stopAVD = async (avdName) => {
   try {
-    store.updateAvdStatus(avd.name, {
+    store.updateAvdStatus(avdName, {
       state: AvdState.SHUTTING_DOWN,
     })
     await nextTick()
-    await StopAVD(avd.name);
+    await StopAVD(avdName);
   } catch (e) {
     console.error('Failed to stop AVD:', e);
   }
@@ -178,7 +192,7 @@ const stopAVD = async (avd) => {
 function openDeleteDialog(avd) {
   menuAvd.value = null
   if (confirm(`Are you sure you want to kill emulator for "${avd.name}"?`)) {
-    stopAVD(avd)
+    stopAVD(avd.name)
     showToast('AVD killed ✅')
   }
 }
@@ -252,339 +266,436 @@ function showToast(message) {
 
 <style scoped>
 .home-container {
-  padding: 20px 0px 0 0;
+  padding: 20px 0 0 0;
+}
+
+.page-header {
+  margin-bottom: 24px;
+}
+
+.page-title-container {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 48px;
+  /* Stable height to prevent flickering */
 }
 
 .page-title {
   font-size: 1.55rem;
-  margin-bottom: 16px;
+  margin: 0;
   color: var(--page-title-color);
+  line-height: 1;
 }
 
-.avd-grid {
+.count-badge {
+  background: var(--color-primary);
+  color: white;
+  font-size: 0.75rem;
+  padding: 2px 8px;
+  border-radius: 20px;
+  font-weight: 700;
   display: flex;
-  gap: 18px;
-  flex-wrap: wrap;
-  align-items: flex-start;
-  animation: fadeIn 0.4s ease;
+  align-items: center;
+  justify-content: center;
+  height: fit-content;
 }
 
-.no-avds {
-  color: #999;
-  font-style: italic;
+.theme-dark .count-badge {
+  color: #111;
 }
 
+/* ──── Card Grid ──── */
+.avd-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 20px;
+  animation: fadeIn 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* ──── Radical Glass Card ──── */
 .avd-card {
   position: relative;
-  background-color: var(--card-background);
-  border-radius: 8px;
-  padding: 16px;
-  width: 215px;
-  border: 1px solid var(--border-color);
-  transition: border 0.3s ease;
+  background: var(--bg-glass);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--border-subtle);
+  border-radius: 16px;
+  padding: 24px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  /* Tighter gap to bring status closer */
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  overflow: hidden;
+  cursor: default;
 }
 
 .avd-card:hover {
-  border: 1px solid var(--border-color-hover);
+  border-color: var(--border-strong);
 }
 
-.avd-running {
-  /* border: 1px solid #147029; */
+/* ──── Card Header ──── */
+.avd-card-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
 }
 
-.menu-button {
-  position: absolute;
-  top: 8px;
-  right: 8px;
-  background: transparent;
-  border: none;
-  color: #bbb;
-  font-size: 1.1rem;
-}
-
-.context-menu {
-  border-radius: 14px;
-  position: fixed;
-  background-color: #333333;
-  border: 1px solid #555;
-  padding: 4px;
-  z-index: 1500;
+.avd-info {
   display: flex;
   flex-direction: column;
-  min-width: 120px;
-  box-shadow: 0 10px 10px rgba(0, 0, 0, 0.2);
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
 }
 
-.context-menu button {
-  border-radius: 9px;
-  background: transparent;
-  border: none;
-  color: #fff;
-  text-align: left;
-  padding: 8px;
-  width: 100%;
+.avd-avatar-container {
+  flex-shrink: 0;
 }
 
-.context-menu button:hover {
-  background: #444;
+.avd-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+  background: rgba(var(--color-primary-rgb), 0.1);
+  border: 1px solid var(--border-glass);
+  color: var(--color-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 0.85rem;
+  backdrop-filter: blur(4px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.theme-dark .avd-avatar {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.1);
+  color: var(--text-primary);
 }
 
 .avd-name {
-  font-weight: 600;
-  font-size: 0.9rem;
-  color: var(--text-color);
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: var(--text-primary);
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.2;
 }
 
+.menu-button {
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: default;
+  opacity: 0;
+  flex-shrink: 0;
+  /* NO transition here for instant appearance */
+}
+
+.menu-button:hover {
+  background: none;
+  color: var(--text-primary);
+  transform: scale(1.15);
+}
+
+.menu-button:active {
+  background: none;
+  color: var(--text-primary);
+  transform: scale(0.95);
+}
+
+.avd-card:hover .menu-button {
+  opacity: 1;
+}
+
+.menu-button:hover {
+  background: var(--bg-card-active);
+  color: var(--text-primary);
+}
+
+/* ──── Context Menu ──── */
+.context-menu {
+  position: fixed;
+  background: var(--bg-glass);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--border-glass);
+  border-radius: 12px;
+  padding: 6px;
+  z-index: 1500;
+  min-width: 140px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+}
+
+.context-menu button {
+  width: 100%;
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: none;
+  background: transparent;
+  color: var(--text-primary);
+  font-size: 0.85rem;
+  font-weight: 500;
+  text-align: left;
+  cursor: default;
+  transition: background 0.2s ease;
+}
+
+.context-menu button:hover {
+  background: var(--color-primary);
+  color: white;
+}
+
+/* ──── Status Indicator ──── */
 .avd-status {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-left: 8px;
+  margin-top: -4px;
+}
+
+.status-dot-container {
+  position: relative;
+  width: 8px;
+  height: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.status-dot {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background: var(--color-status-off);
+  z-index: 1;
+}
+
+.status-pulse {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background: var(--color-status-off);
+  z-index: 0;
+  opacity: 0;
+}
+
+.status-label {
+  font-size: 0.82rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+
+@keyframes pulse-premium {
+  0% {
+    transform: scale(1);
+    opacity: 0.5;
+  }
+
+  70%,
+  100% {
+    transform: scale(2.2);
+    opacity: 0;
+  }
+}
+
+.avd-status.running .status-dot,
+.avd-status.running .status-pulse {
+  background: var(--color-status-running);
+}
+
+.avd-status.running .status-pulse {
+  animation: pulse-premium 2.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+.avd-status.running .status-label {
+  color: var(--color-status-running);
+}
+
+.avd-status.loading .status-dot,
+.avd-status.shuttingDown .status-dot {
+  background: var(--color-status-loading);
+}
+
+.avd-status.loading .status-pulse,
+.avd-status.shuttingDown .status-pulse {
+  background: var(--color-status-loading);
+  animation: pulse-premium 1.5s infinite;
+}
+
+/* ──── Premium Labeled Buttons ──── */
+.avd-actions {
+  display: flex;
+  flex-direction: row;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.action-btn-premium {
+  flex: 1;
+  height: 38px;
+  padding: 0 16px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--text-secondary) 8%, transparent);
+  border: 1px solid color-mix(in srgb, var(--text-secondary) 15%, transparent);
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: default;
+  transition: all 0.1s ease;
+  /* Snappy transition */
+  white-space: nowrap;
+}
+
+.action-btn-premium:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--text-secondary) 15%, transparent);
+  border-color: color-mix(in srgb, var(--text-secondary) 25%, transparent);
+  color: var(--text-primary);
+}
+
+.action-btn-premium:active:not(:disabled) {
+  transform: scale(0.95);
+}
+
+.action-btn-premium.launch {
+  background: var(--color-primary);
+  color: white;
+  /* Matches light mode count badge */
+  border: none;
+}
+
+.action-btn-premium.launch:hover {
+  background: var(--color-primary);
+  filter: brightness(1.1);
+  color: white;
+}
+
+.theme-dark .action-btn-premium.launch {
+  color: #111;
+  /* High contrast on amber */
+}
+
+.theme-dark .action-btn-premium.launch:hover {
+  color: #111;
+}
+
+.action-btn-premium.coldboot i {
+  font-size: 0.85rem;
+  /* Reduced snowflake size as requested */
+}
+
+
+.action-btn-premium.stop {
+  background: rgba(220, 38, 38, 0.1);
+  color: #dc2626;
+  border: 1px solid rgba(220, 38, 38, 0.2);
+}
+
+.theme-dark .action-btn-premium.stop {
+  background: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
+  border: 1px solid rgba(239, 68, 68, 0.2);
+}
+
+.action-btn-premium.stop:hover:not(:disabled) {
+  background: #dc2626;
+  color: white;
+  border-color: #dc2626;
+}
+
+.action-btn-premium:disabled {
+  opacity: 0.4;
+}
+
+.action-btn-premium i {
+  font-size: 1.1rem;
+}
+
+/* ──── Toast & Dialog ──── */
+.toast {
+  position: fixed;
+  bottom: 30px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--bg-glass);
+  backdrop-filter: blur(20px);
+  border: 1px solid var(--border-glass);
+  padding: 8px 16px;
+  border-radius: 50px;
+  color: var(--text-primary);
+  font-weight: 600;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+  z-index: 3000;
   font-size: 0.85rem;
 }
 
-.avd-status.running {
-  color: #28a745;
-}
-
-.avd-status.poweredOff {
-  color: gray;
-}
-
-.avd-status.loading {
-  color: #f39c12;
-}
-
-.avd-status.shuttingDown {
-  color: #f39c12;
-}
-
-.avd-launch-buttons {
-  display: flex;
-  gap: 10px;
-}
-
-.avd-stop-button {
-  display: flex;
-  justify-content: flex-start;
-}
-
-.btn {
-  font-family: inherit;
-  padding: 6px 12px;
-  font-size: 0.9rem;
-  border-radius: 4px;
-  border: 1px solid transparent;
-  transition: all 0.2s ease;
-}
-
-.btn-primary {
-  background-color: #0d6efd;
-  color: white;
-}
-
-.btn-primary:hover {
-  background-color: #005dc0;
-}
-
-.btn-secondary {
-  background-color: #000000;
-  color: white;
-}
-
-.btn-secondary:hover {
-  background-color: #222222;
-}
-
-.btn-close {
-  width: 32px;
-  height: 32px;
-  background-color: #b12e3b;
-  color: white;
-  border-radius: 4px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.btn-close:hover {
-  background-color: #862932;
-}
-
-.overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: rgba(0, 0, 0, 0.5);
-  z-index: 999;
-}
-
-/* Edit dialog */
 .edit-overlay {
   position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 0, 0, 0.7);
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(10px);
   display: flex;
-  justify-content: center;
   align-items: center;
+  justify-content: center;
   z-index: 2000;
 }
 
 .edit-dialog {
-  background: #2c2c2c;
+  background: var(--bg-glass);
+  backdrop-filter: blur(20px);
+  border: 1px solid var(--border-glass);
   padding: 24px;
-  border-radius: 8px;
-  position: relative;
-  color: white;
-  width: 300px;
+  border-radius: 20px;
+  width: 90%;
+  max-width: 320px;
+  color: var(--text-primary);
   text-align: center;
 }
 
-.edit-close-button {
-  position: absolute;
-  top: 8px;
-  right: 8px;
-  background: #444;
-  border: none;
-  color: #fff;
-  border-radius: 4px;
-  padding: 5px 7px;
+.edit-dialog h3 {
+  font-size: 1.25rem;
+  font-weight: 800;
+  margin-bottom: 20px;
+  letter-spacing: -0.02em;
 }
 
 .edit-dialog input {
   width: 100%;
-  padding: 8px;
-  margin-top: 12px;
-  border-radius: 4px;
-  border: 1px solid #555;
-  background: #1c1c1c;
-  color: #c4c4c4;
+  background: rgba(0, 0, 0, 0.05);
+  border: 1px solid var(--border-glass);
+  padding: 10px 14px;
+  border-radius: 10px;
+  color: var(--text-primary);
   margin-bottom: 16px;
 }
 
-/* Toast */
-.toast {
-  position: fixed;
-  bottom: 40px;
-  left: 50%;
-  transform: translateX(-50%);
-  background: #080808;
-  color: white;
-  padding: 10px 20px;
-  border-radius: 15px;
-  z-index: 3000;
-  opacity: 0.9;
+.theme-dark .edit-dialog input {
+  background: rgba(255, 255, 255, 0.05);
 }
 
-.disabled {
-  background-color: #555;
-  color: #999;
-}
-
-.disabled:hover {
-  background-color: #555;
-  color: #999;
-}
-
-.page-title-container {
-  position: relative;
-}
-
-.count-badge {
-  position: absolute;
-  top: -5px;
-  left: 157px;
-  background-color: #DF0000;
-  color: white;
-  font-size: 12px;
-  padding: 2px 5px;
-  border-radius: 50%;
-  line-height: 1;
-  text-align: center;
-  font-weight: bold;
-}
-
-.icon-button {
-  background: none;
-  border: none;
-  padding: 6px;
-  font-size: 1.5rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  will-change: filter;
-}
-
-.icon-button i {
-  transition: filter 0.15s ease;
-}
-
-.icon-button:hover i {
-  filter: brightness(1.3);
-}
-
-.icon-button:disabled {
-  opacity: 0.5;
-}
-
-.icon-start {
-  color: #28a745;
-}
-
-.icon-stop {
-  color: #dc3545;
-}
-
-.avd-action-button {
-  display: flex;
-  margin-top: 10px;
-}
-
-.icon-button-coldboot i {
-  font-size: 1.15rem;
-  /* Slightly smaller to match the others */
-}
-
-.icon-coldboot {
-  color: #ffc107;
-}
-
-.android-home-warning {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  /* background-color: #1a1a1a; */
-  /* padding: 40px 20px; */
-  border-radius: 8px;
-  /* border: 1px solid #3a3a3a; */
-  text-align: center;
-  animation: fadeIn 0.4s ease;
-}
-
-.warning-icon {
-  color: #ffc107;
-  font-size: 3rem;
-}
-
-.warning-text {
-  line-height: 1.5;
-  margin-bottom: 25px;
-  color: #9e9e9e;
-}
-
-.warning-text-first-line {
-  color: #ffc107;
-  font-weight: bold;
-  display: inline-block;
-  margin-bottom: 25px;
-}
-
+/* ──── Animations ──── */
 @keyframes fadeIn {
   from {
     opacity: 0;
-    transform: translateY(25px);
+    transform: translateY(20px);
   }
 
   to {
@@ -595,11 +706,12 @@ function showToast(message) {
 
 .fade-fast-enter-active,
 .fade-fast-leave-active {
-  transition: opacity 0.3s ease;
+  transition: all 0.2s ease;
 }
 
 .fade-fast-enter-from,
 .fade-fast-leave-to {
   opacity: 0;
+  transform: scale(0.95);
 }
 </style>

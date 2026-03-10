@@ -1,0 +1,6 @@
+/* --- Transition Suppression (Flicker Shield) --- */
+/* Used to prevent theme-switching flicker by temporarily disabling all transitions */
+
+.no-transitions * {
+  transition: none !important;
+}

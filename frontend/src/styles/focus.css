@@ -1,0 +1,21 @@
+/* --- Focus outline tweaks for native feel --- */
+button,
+input,
+select,
+textarea {
+  outline: none;
+}
+
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid #8e44ad;
+  /* optional custom focus color */
+  outline-offset: 2px;
+}
+
+/* Ensure buttons are clickable in drag regions */
+button {
+  -webkit-app-region: no-drag;
+}

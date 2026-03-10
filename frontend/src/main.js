@@ -3,12 +3,24 @@ import { createPinia } from 'pinia'
 import App from './App.vue'
 import { router } from "./router";
 import { useThemeStore } from './stores/themeStore'
+import './styles/theme.css';
 import './style.css';
+import './styles/flicker.css';
+import './styles/native.css';
+import './styles/focus.css';
 import "bootstrap-icons/font/bootstrap-icons.css";
+
+import { addIcons, OhVueIcon } from "oh-vue-icons";
+import { HiDeviceMobile, HiDocumentText, HiCog, HiSun, HiMoon, HiAdjustments, HiViewGrid, HiGift, FaGithub } from "oh-vue-icons/icons";
+
+addIcons(HiDeviceMobile, HiDocumentText, HiCog, HiSun, HiMoon, HiAdjustments, HiViewGrid, HiGift, FaGithub);
 
 const app = createApp(App)
 app.use(createPinia())
 app.use(router)
+
+app.component("v-icon", OhVueIcon);
+
 app.mount('#app')
 
 // Apply theme after mount

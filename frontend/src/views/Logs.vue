@@ -197,7 +197,7 @@ function updateHighlighting() {
   flex-direction: column;
   height: 100%;
   padding: 20px 0 0 0;
-  color: #ccc;
+  color: var(--text-primary);
 }
 
 .page-title {
@@ -212,7 +212,7 @@ function updateHighlighting() {
   height: 100%;
   resize: none;
   background-color: transparent;
-  color: #ccc;
+  color: var(--text-secondary);
   font-family: monospace;
   font-size: 0.9rem;
   padding: 12px;

@@ -1,0 +1,135 @@
+/* --- Theme Variables --- */
+
+:root,
+.theme-light {
+  /* Brand & Accent */
+  --color-primary: #008eec;
+  --color-primary-rgb: 0, 142, 236;
+  --color-primary-hover: #a81e11;
+  --color-accent-red: #f14144;
+
+  /* Background Surfaces */
+  --bg-app: #f3f3f3;
+  /* Sidebar & TopBar */
+  --bg-surface: #f9f9f9;
+  /* Content Area */
+  --bg-card: #f0f0f0;
+  --bg-card-hover: #f0f0f0;
+  --bg-card-active: #d7d7d7;
+  --bg-toast: #f0f0f0;
+  --bg-badge: #757575;
+
+  /* Text & Content */
+  --text-primary: #373737;
+  --text-secondary: #6b6b6b;
+  --text-inverse: #ffffff;
+
+  /* Borders & Dividers */
+  --border-subtle: #d1d1d1;
+  --border-strong: #b4b4b4;
+
+  /* Interactive Elements */
+  --btn-primary-bg: #333333;
+  --btn-primary-hover: #111111;
+  --btn-ghost-hover: #e0e0e0;
+
+  /* Status Colors */
+  --color-status-running: #16a34a;
+  --color-status-off: var(--text-secondary);
+  --color-status-loading: #ca8a04;
+  --color-status-stopping: #ca8a04;
+
+  /* Action Icon Colors */
+  --color-action-start: #16a34a;
+  --color-action-stop: #dc2626;
+  --color-action-coldboot: #ca8a04;
+
+  /* Misc & Glassmorphism */
+  --bg-glass: rgba(255, 255, 255, 0.45);
+  --border-glass: rgba(0, 0, 0, 0.06);
+  --shadow-premium: 0 8px 32px 0 rgba(31, 38, 135, 0.07);
+  --shadow-premium-hover: 0 12px 40px 0 rgba(31, 38, 135, 0.12);
+
+  /* Legacy Aliases for compatibility */
+  --page-title-color: var(--text-primary);
+  --text-color: var(--text-primary);
+  --secondary-text-color: var(--text-secondary);
+  --border-color: var(--border-subtle);
+  --input-border: var(--border-subtle);
+  --card-bg: var(--bg-card);
+  --bg-color: var(--bg-surface);
+}
+
+.theme-dark {
+  /* Brand & Accent */
+  --color-primary: #f59e0b;
+  --color-primary-rgb: 245, 158, 11;
+  --color-primary-hover: #d97706;
+
+  /* Background Surfaces */
+  --bg-app: #060606;
+  /* Sidebar & TopBar */
+  --bg-surface: #0a0a0a;
+  /* Content Area */
+  --bg-card: #0c0c0c;
+  --bg-card-hover: #1a1a1a;
+  --bg-card-active: #121212;
+  --bg-toast: #101010;
+  --bg-badge: #434343;
+
+  /* Text & Content */
+  --text-primary: #f3f3f3;
+  --text-secondary: #9aa0aa;
+  --text-inverse: #b9b9b9;
+
+  /* Borders & Dividers */
+  --border-subtle: #161616;
+  --border-strong: #2a2a2a;
+
+  /* Interactive Elements */
+  --btn-primary-bg: #212121;
+  --btn-primary-hover: #121212;
+  --btn-ghost-hover: #2b2b2b;
+
+  /* Status Colors */
+  --color-status-running: #22c55e;
+  --color-status-off: var(--text-secondary);
+  --color-status-loading: #eab308;
+  --color-status-stopping: #eab308;
+
+  /* Action Icon Colors */
+  --color-action-start: #22c55e;
+  --color-action-stop: #ef4444;
+  --color-action-coldboot: #eab308;
+
+  /* Misc & Glassmorphism */
+  --bg-glass: rgba(15, 15, 15, 0.6);
+  --border-glass: rgba(255, 255, 255, 0.08);
+  --shadow-premium: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+  --shadow-premium-hover: 0 12px 40px 0 rgba(0, 0, 0, 0.5);
+
+  /* Legacy Aliases for compatibility */
+  --page-title-color: var(--text-primary);
+  --text-color: var(--text-primary);
+  --secondary-text-color: var(--text-secondary);
+  --border-color: var(--border-subtle);
+  --input-border: var(--border-subtle);
+  --card-bg: var(--bg-card);
+  --bg-color: var(--bg-surface);
+}
+
+/* True Black mode override */
+.theme-dark.true-black {
+  --bg-app: #000000;
+  --bg-surface: #000000;
+  --bg-card: #000000;
+  --bg-card-hover: #000000;
+  --bg-card-active: #000000;
+  --bg-toast: #000000;
+  --bg-badge: transparent;
+
+  --border-subtle: #111111;
+  --border-strong: #000000;
+
+  --btn-ghost-hover: #111111;
+}
