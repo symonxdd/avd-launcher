@@ -55,6 +55,10 @@
             <span :class="styles.statusPulse"></span>
           </div>
           <span :class="styles.statusLabel">{{ avd.state }}</span>
+          <div v-if="avd.diskUsage" :class="styles.diskUsage">
+            <v-icon name="hi-database" :scale="0.7" />
+            <span>{{ avd.diskUsage }}</span>
+          </div>
         </div>
 
         <!-- Animated context menu -->
@@ -62,6 +66,10 @@
           <transition name="fade-fast">
             <div v-if="menuAvd === avd" :class="styles.contextMenu"
               :style="{ top: `${menuPosition.y}px`, left: `${menuPosition.x}px` }">
+              <button @click="openFolder(avd.path)">
+                <v-icon name="hi-folder-open" :scale="0.85" />
+                <span>Show on Disk</span>
+              </button>
               <button @click="openEditDialog(avd)">
                 <v-icon name="hi-pencil" :scale="0.85" />
                 <span>Rename</span>
@@ -156,7 +164,7 @@
 
 <script setup>
 import { ref, onMounted, onBeforeUnmount, nextTick, computed } from 'vue'
-import { ListAVDs, StartAVD, StopAVD, ListRunningAVDs, GetAndroidSdkEnv, OpenEnvironmentVariables, RenameAVD, DeleteAVD, SelectAndSaveSdkPath } from '../../wailsjs/go/app/App'
+import { ListAVDs, StartAVD, StopAVD, ListRunningAVDs, GetAndroidSdkEnv, OpenEnvironmentVariables, RenameAVD, DeleteAVD, SelectAndSaveSdkPath, GetAvdInfo, OpenAvdFolder } from '../../wailsjs/go/app/App'
 import EnvInfoModal from '../components/EnvInfoModal.vue'
 import { useAvdStore } from '../stores/avdStore'
 import { AvdState } from '../enums/avdState'
@@ -204,6 +212,12 @@ const sdkMissing = ref(localStorage.getItem('avd_sdk_missing') === 'true')
 const androidEnvChecked = ref(false)
 
 const isWindows = navigator.userAgent.includes('Windows')
+
+function openFolder(path) {
+  if (path) {
+    OpenAvdFolder(path)
+  }
+}
 
 function toggleMenu(avd, event) {
   if (menuAvd.value === avd) {
@@ -329,24 +343,35 @@ async function initData() {
     const avds = await ListAVDs()
     const runningAvds = await ListRunningAVDs()
 
-    avds.forEach(name => {
+    for (const name of avds) {
       const isRunning = runningAvds?.includes(name)
+
+      let info = null
+      try {
+        info = await GetAvdInfo(name)
+      } catch (e) {
+        console.error(`Error fetching info for ${name}:`, e)
+      }
 
       // If already in store, update its state
       const existing = store.avds.find(a => a.name === name)
+      const update = {
+        state: isRunning ? AvdState.RUNNING : AvdState.POWERED_OFF,
+        diskUsage: info?.diskUsage,
+        path: info?.path
+      }
+
       if (existing) {
-        store.updateAvdStatus(name, {
-          state: isRunning ? AvdState.RUNNING : AvdState.POWERED_OFF
-        })
+        store.updateAvdStatus(name, update)
       } else {
         // Otherwise, add it
         store.avds.push({
           name,
-          state: isRunning ? AvdState.RUNNING : AvdState.POWERED_OFF,
+          ...update,
           hover: false
         })
       }
-    })
+    }
   } catch (err) {
     showToast(`Error... ${err}`)
     console.log(err);

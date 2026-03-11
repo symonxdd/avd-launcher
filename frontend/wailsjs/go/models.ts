@@ -17,6 +17,27 @@ export namespace helper {
 
 }
 
+export namespace models {
+	
+	export class AvdInfo {
+	    name: string;
+	    path: string;
+	    diskUsage: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new AvdInfo(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.name = source["name"];
+	        this.path = source["path"];
+	        this.diskUsage = source["diskUsage"];
+	    }
+	}
+
+}
+
 export namespace services {
 	
 	export class GitHubRelease {

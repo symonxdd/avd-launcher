@@ -10,12 +10,20 @@ export function GetAndroidSdkEnv() {
   return window['go']['app']['App']['GetAndroidSdkEnv']();
 }
 
+export function GetAvdInfo(arg1) {
+  return window['go']['app']['App']['GetAvdInfo'](arg1);
+}
+
 export function ListAVDs() {
   return window['go']['app']['App']['ListAVDs']();
 }
 
 export function ListRunningAVDs() {
   return window['go']['app']['App']['ListRunningAVDs']();
+}
+
+export function OpenAvdFolder(arg1) {
+  return window['go']['app']['App']['OpenAvdFolder'](arg1);
 }
 
 export function OpenConfigFolder() {

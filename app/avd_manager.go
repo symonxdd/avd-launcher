@@ -315,3 +315,52 @@ func (a *App) DeleteAVD(avdName string) error {
 	fmt.Printf("Deleted AVD '%s': %s\n", avdName, string(output))
 	return nil
 }
+
+// Retrieves detailed information about an AVD including disk usage
+func (a *App) GetAvdInfo(avdName string) (models.AvdInfo, error) {
+	avdDir, err := helper.GetAvdDirectory()
+	if err != nil {
+		return models.AvdInfo{}, err
+	}
+
+	iniPath := filepath.Join(avdDir, avdName+".ini")
+	file, err := os.Open(iniPath)
+	if err != nil {
+		return models.AvdInfo{}, err
+	}
+	defer file.Close()
+
+	var avdPath string
+	scanner := bufio.NewScanner(file)
+	for scanner.Scan() {
+		line := scanner.Text()
+		if strings.HasPrefix(line, "path=") {
+			avdPath = strings.TrimPrefix(line, "path=")
+			break
+		}
+	}
+
+	if avdPath == "" {
+		return models.AvdInfo{}, fmt.Errorf("could not find path in AVD ini file")
+	}
+
+	size, err := helper.DirSize(avdPath)
+	if err != nil {
+		fmt.Printf("Error calculating size for %s: %v\n", avdPath, err)
+	}
+
+	return models.AvdInfo{
+		Name:      avdName,
+		Path:      avdPath,
+		DiskUsage: helper.FormatSize(size),
+	}, nil
+}
+
+// Opens the AVD's directory in Windows Explorer
+func (a *App) OpenAvdFolder(path string) {
+	// 🧠 /select,path would select the folder in its parent. 
+	// But usually users want to OPEN the folder content if it's a directory.
+	// Or select it. Let's just open it.
+	cmd := helper.NewCommand("explorer", path)
+	_ = cmd.Run()
+}

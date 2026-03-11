@@ -293,6 +293,22 @@
   white-space: nowrap;
 }
 
+.diskUsage {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.72rem;
+  color: var(--text-secondary);
+  opacity: 0.5;
+  margin-left: auto;
+  padding-right: 2px;
+  transition: opacity 0.2s;
+}
+
+.avdCard:hover .diskUsage {
+  opacity: 0.8;
+}
+
 @keyframes pulse-premium {
   0% {
     transform: scale(1);
