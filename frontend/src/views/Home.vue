@@ -101,10 +101,30 @@
       <div :class="styles.modal" @click.stop>
         <h3>Rename AVD</h3>
         <p>Enter a new name for <strong>{{ editAvd?.name }}</strong>:</p>
-        <input v-model="editAvdName" placeholder="New AVD Name" @keyup.enter="saveEdit" />
+        <input v-model="editAvdName" id="edit-avd-name" name="edit-avd-name" placeholder="New AVD Name"
+          @keyup.enter="saveEdit" spellcheck="false" autocorrect="off" autocapitalize="off" />
+        <div :class="styles.allowedCharsInfo">
+          <v-icon name="hi-sparkles" :scale="0.8" />
+          <span>The name can contain uppercase or lowercase letters, numbers, periods, underscores, parentheses, dashes,
+            and spaces.</span>
+        </div>
+        <transition name="fade-slide">
+          <div v-if="isCaseOnlyChange" :class="styles.renameHint">
+            <v-icon name="hi-information-circle" :scale="0.8" />
+            <span>To change only capitalization, first rename to something else, then back to the desired name with the
+              correct case.</span>
+          </div>
+        </transition>
         <div :class="styles.modalActions">
-          <button :class="[styles.btn, styles.btnSecondary]" @click="closeEditDialog">Cancel</button>
-          <button :class="[styles.btn, styles.btnPrimary]" @click="saveEdit">Confirm</button>
+          <button :class="[styles.btn, styles.btnSecondary]" @click="closeEditDialog"
+            :disabled="isRenaming">Cancel</button>
+          <button :class="[styles.btn, styles.btnPrimary]" @click="saveEdit" :disabled="isRenameDisabled">
+            <template v-if="isRenaming">
+              <v-icon name="hi-refresh" animation="spin" :scale="0.8" :class="styles.loadingIcon" />
+              <span>Renaming...</span>
+            </template>
+            <span v-else>Confirm</span>
+          </button>
         </div>
       </div>
     </div>
@@ -135,7 +155,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onBeforeUnmount, nextTick } from 'vue'
+import { ref, onMounted, onBeforeUnmount, nextTick, computed } from 'vue'
 import { ListAVDs, StartAVD, StopAVD, ListRunningAVDs, GetAndroidSdkEnv, OpenEnvironmentVariables, RenameAVD, DeleteAVD, SelectAndSaveSdkPath } from '../../wailsjs/go/app/App'
 import EnvInfoModal from '../components/EnvInfoModal.vue'
 import { useAvdStore } from '../stores/avdStore'
@@ -149,6 +169,21 @@ const showEditDialog = ref(false)
 const isEditClosing = ref(false)
 const editAvd = ref(null)
 const editAvdName = ref('')
+const isRenaming = ref(false)
+
+const isRenameDisabled = computed(() => {
+  if (!editAvd.value || isRenaming.value) return true;
+  const oldName = editAvd.value.name;
+  const newName = editAvdName.value.trim();
+  return newName === '' || oldName === newName;
+})
+
+const isCaseOnlyChange = computed(() => {
+  if (!editAvd.value) return false;
+  const oldName = editAvd.value.name;
+  const newName = editAvdName.value.trim();
+  return oldName !== newName && oldName.toLowerCase() === newName.toLowerCase();
+})
 
 const showDeleteDialog = ref(false)
 const isDeleteClosing = ref(false)
@@ -215,6 +250,7 @@ async function saveEdit() {
       return;
     }
     try {
+      isRenaming.value = true;
       await RenameAVD(oldName, newName);
       // Update local store to reflect the change
       editAvd.value.name = newName;
@@ -223,6 +259,8 @@ async function saveEdit() {
     } catch (err) {
       showToast('Failed to rename AVD ❌');
       console.error(err);
+    } finally {
+      isRenaming.value = false;
     }
   }
 }
