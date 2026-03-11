@@ -16,7 +16,9 @@
         <button :class="styles.closeBtn" @click="deactivateSearch">×</button>
       </div>
     </div>
-    <div :class="styles.logOutput" ref="logContainer" v-html="highlightedLogs"></div>
+    <div :class="styles.logOutputWrapper">
+      <div :class="styles.logOutput" ref="logContainer" v-html="highlightedLogs"></div>
+    </div>
   </div>
 </template>
 
