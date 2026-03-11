@@ -28,7 +28,13 @@
 .settingsRow {
   display: flex;
   gap: 16px;
-  align-items: flex-start;
+  align-items: stretch;
+  width: 100%;
+}
+
+.settingsRow > .settingsGroup {
+  flex: 1;
+  max-width: calc(50% - 8px);
 }
 
 .settingsColumn {
@@ -60,6 +66,40 @@
   font-weight: 600;
   color: var(--text-primary);
   letter-spacing: -0.01em;
+}
+
+.headingRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.envLearnMore {
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  font-size: 0.78rem;
+  font-weight: 700;
+  padding: 0;
+  cursor: default;
+  text-decoration: underline dotted color-mix(in srgb, currentColor 30%, transparent);
+  text-underline-offset: 4px;
+  transition: all 0.2s;
+  display: block;
+}
+
+.envLearnMore:hover {
+  color: #3b82f6;
+  text-decoration-color: currentColor;
+}
+
+:global(.theme-dark) .envLearnMore:hover {
+  color: #ca8a04;
+  text-decoration-color: rgba(202, 138, 4, 0.3);
+}
+
+:global(.theme-dark) .envLearnMore:hover {
+  text-decoration-color: currentColor;
 }
 
 .headingIcon {
@@ -219,6 +259,12 @@
   border-radius: 16px;
   background-color: var(--bg-surface);
   border: 1px solid var(--border-subtle);
+  min-height: 62px;
+  /* Ensure consistent height during loading */
+}
+
+.hidden {
+  visibility: hidden;
 }
 
 .statusInfo {
@@ -426,5 +472,9 @@
 
   .settingsRow {
     flex-direction: column;
+  }
+
+  .settingsRow > .settingsGroup {
+    max-width: 100%;
   }
 }

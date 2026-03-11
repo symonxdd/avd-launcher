@@ -273,10 +273,10 @@ async function initData() {
     // env = '' // for debug purposes
 
     // TEMPORARILY FORCE THE WARNING FOR TESTING:
-    sdkMissing.value = true;
-    localStorage.setItem('avd_sdk_missing', 'true');
-    store.avds = [];
-    return;
+    // sdkMissing.value = true;
+    // localStorage.setItem('avd_sdk_missing', 'true');
+    // store.avds = [];
+    // return;
 
     if (!env.path || env.path === '') {
       sdkMissing.value = true
