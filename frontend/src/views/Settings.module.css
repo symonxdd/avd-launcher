@@ -4,16 +4,29 @@
   flex-direction: column;
   height: 100%;
   color: var(--text-primary);
-  padding: 20px 0 0 0;
+  padding-top: 20px;
+}
+
+:global(.layout-top-nav) .settingsContainer {
+  padding: 20px 9rem 0 9rem;
+}
+
+.pageHeader {
+  margin-bottom: 24px;
+}
+
+.pageTitleContainer {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
 }
 
 .pageTitle {
   font-size: 1.55rem;
-  margin-bottom: 24px;
+  margin: 0;
   color: var(--page-title-color);
+  line-height: 1.2;
 }
-
-
 
 /* --- Vertical Layout for Groups --- */
 .settingsGrid {

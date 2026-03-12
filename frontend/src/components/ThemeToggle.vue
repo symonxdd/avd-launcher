@@ -2,8 +2,8 @@
   <button @click="toggleTheme" @dblclick.stop :class="styles.toggleBtn" aria-label="Toggle theme">
     <transition name="sunmoon" mode="out-in">
       <div :key="themeStore.theme" :class="styles.iconContainer">
-        <v-icon v-if="isDark" name="hi-sun" :scale="1.1" :class="styles.icon" />
-        <v-icon v-else name="hi-moon" :scale="1.1" :class="styles.icon" />
+        <v-icon v-if="isDark" name="hi-moon" :scale="1.1" :class="styles.icon" />
+        <v-icon v-else name="hi-sun" :scale="1.1" :class="styles.icon" />
       </div>
     </transition>
   </button>

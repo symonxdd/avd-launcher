@@ -1,7 +1,33 @@
 <template>
   <div :class="styles.topBar" @dblclick="WindowToggleMaximise">
-    <div :class="styles.titleContainer">
+    <div :class="styles.leftActions">
       <ThemeToggle :class="styles.topBtn" />
+      <LayoutToggle :class="styles.topBtn" />
+    </div>
+
+    <!-- Centered Branding (Top Nav mode only) -->
+    <div v-if="layoutStore.layoutMode === 'top-nav'" :class="styles.brandingCenter">
+      <img src="../assets/images/appicon-no-bg.png" alt="App logo" :class="styles.appIcon" />
+      <span :class="styles.appTitle">AVD Launcher</span>
+    </div>
+
+    <div
+      v-if="layoutStore.layoutMode === 'top-nav'"
+      :class="styles.navPillContainer"
+      @dblclick.stop
+    >
+      <nav :class="styles.pill">
+        <router-link
+          v-for="link in navigationLinks"
+          :key="link.href"
+          :to="link.href"
+          :class="[styles.navLink, isActive(link.href) && styles.active]"
+          draggable="false"
+        >
+          <div v-if="isActive(link.href)" :class="styles.activePill" />
+          <span :class="styles.navLinkText">{{ link.label }}</span>
+        </router-link>
+      </nav>
     </div>
 
     <div :class="styles.winControls">
@@ -14,6 +40,23 @@
 
 <script setup>
 import { WindowMinimise, WindowToggleMaximise, Quit } from '../../wailsjs/runtime/runtime';
+import { useRoute } from 'vue-router';
+import { useLayoutStore } from '../stores/layoutStore';
 import ThemeToggle from './ThemeToggle.vue';
+import LayoutToggle from './LayoutToggle.vue';
 import styles from './TopBar.module.css';
+
+const route = useRoute();
+const layoutStore = useLayoutStore();
+
+const navigationLinks = [
+  { href: '/', label: 'Home' },
+  { href: '/logs', label: 'Logs' },
+  { href: '/settings', label: 'Settings' },
+];
+
+const isActive = (path) => {
+  if (path === '/') return route.path === '/';
+  return route.path.startsWith(path);
+};
 </script>

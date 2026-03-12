@@ -1,6 +1,10 @@
 <template>
   <div :class="styles.settingsContainer">
-    <h2 :class="styles.pageTitle">Settings</h2>
+    <div :class="styles.pageHeader">
+      <div :class="styles.pageTitleContainer">
+        <h2 :class="styles.pageTitle">Settings</h2>
+      </div>
+    </div>
     <div :class="styles.settingsGrid">
       <!-- --- System Settings --- -->
       <div :class="styles.settingsGroup">

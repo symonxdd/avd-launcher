@@ -1,5 +1,9 @@
 .homeContainer {
-  padding: 20px 0 0 0;
+  padding-top: 20px;
+}
+
+:global(.layout-top-nav) .homeContainer {
+  padding: 20px 9rem 0 9rem;
 }
 
 .pageHeader {
@@ -10,8 +14,6 @@
   display: flex;
   align-items: center;
   gap: 12px;
-  min-height: 48px;
-  /* Stable height to prevent flickering */
 }
 
 
@@ -20,7 +22,7 @@
   font-size: 1.55rem;
   margin: 0;
   color: var(--page-title-color);
-  line-height: 1;
+  line-height: 1.2;
 }
 
 .countBadge {
@@ -45,7 +47,7 @@
 /* ──── Card Grid ──── */
 .avdGrid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
   gap: 20px;
   animation: fadeIn 0.6s cubic-bezier(0.16, 1, 0.3, 1);
 }

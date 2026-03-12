@@ -1,6 +1,10 @@
 <template>
   <div :class="styles.logsContainer" @keydown.stop>
-    <h2 :class="styles.pageTitle">Logs</h2>
+    <div :class="styles.pageHeader">
+      <div :class="styles.pageTitleContainer">
+        <h2 :class="styles.pageTitle">Logs</h2>
+      </div>
+    </div>
 
     <div v-if="searchActive" :class="styles.logSearchBar">
       <input ref="searchInput" v-model="searchQuery" placeholder="Search logs..." :class="styles.searchInput"

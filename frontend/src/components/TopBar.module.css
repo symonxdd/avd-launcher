@@ -9,12 +9,136 @@
   user-select: none;
   -webkit-app-region: drag;
   --wails-draggable: drag;
+  position: relative;
+  /* Container for absolute navPillContainer */
+  z-index: 102;
 }
 
-.titleContainer {
+.leftActions {
   display: flex;
   align-items: center;
   gap: 8px;
+  -webkit-app-region: no-drag;
+  position: relative;
+  z-index: 105;
+}
+
+.brandingCenter {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  -webkit-app-region: drag;
+  pointer-events: none; /* Let drag pass through span if needed, though region usually handles it */
+  z-index: 100;
+}
+
+.appIcon {
+  width: 22px;
+  height: 22px;
+  object-fit: contain;
+}
+
+.appTitle {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  letter-spacing: -0.01em;
+}
+
+.navPillContainer {
+  position: absolute;
+  top: 50px;
+  /* height of TopBar */
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  -webkit-app-region: no-drag;
+  z-index: 101;
+  /* Apply shadow to the whole unit */
+  /* filter: drop-shadow(0 12px 24px rgba(0, 0, 0, 0.2)); */
+  /* Clip the shadow so it doesn't bleed upwards onto the TopBar */
+  clip-path: inset(0 -100px -100px -100px);
+}
+
+.pill {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 6px;
+  border-radius: 0 0 24px 24px;
+  background-color: var(--bg-app);
+  /* No border or box-shadow here to avoid the 'seam' */
+  -webkit-app-region: no-drag;
+}
+
+/* Dynamic Island Connectors (Ultra-curved shoulders) */
+.pill::before,
+.pill::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  width: 32px;
+  height: 33px;
+  /* Slightly taller to ensure no bottom gaps */
+  background-color: var(--bg-app);
+  pointer-events: none;
+}
+
+.pill::before {
+  left: -31px;
+  /* Overlap by 1px to prevent sub-pixel gaps */
+  -webkit-mask: radial-gradient(circle at 0 32px, transparent 32px, black 32.5px);
+  mask: radial-gradient(circle at 0 32px, transparent 32px, black 32.5px);
+}
+
+.pill::after {
+  right: -31px;
+  /* Overlap by 1px to prevent sub-pixel gaps */
+  -webkit-mask: radial-gradient(circle at 32px 32px, transparent 32px, black 32.5px);
+  mask: radial-gradient(circle at 32px 32px, transparent 32px, black 32.5px);
+}
+
+.navLink {
+  position: relative;
+  display: flex;
+  align-items: center;
+  padding: 10px 24px;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  border-radius: 9999px;
+  transition: color 0.2s ease;
+  text-decoration: none;
+  cursor: default;
+  -webkit-app-region: no-drag;
+}
+
+.navLink:hover {
+  color: var(--text-primary);
+}
+
+.navLink.active {
+  color: var(--text-primary);
+}
+
+.navLinkText {
+  position: relative;
+  z-index: 1;
+}
+
+.activePill {
+  position: absolute;
+  inset: 5px;
+  background: var(--bg-card-active);
+  border-radius: 9999px;
+  z-index: 0;
+  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.05);
 }
 
 .topBtn {

@@ -13,6 +13,10 @@
   overflow: hidden;
 }
 
+.topNavMode {
+  flex-direction: column;
+}
+
 .mainContent {
   flex: 1;
   background-color: var(--bg-surface);
@@ -28,6 +32,13 @@
   /* Firefox */
   -ms-overflow-style: none;
   /* IE and Edge */
+}
+
+.topNavContent {
+  border-top-left-radius: 0;
+  border-left: none;
+  border-top: none;
+  padding: 56px 0 2rem;
 }
 
 .mainContent::-webkit-scrollbar {
