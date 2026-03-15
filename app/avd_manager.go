@@ -9,6 +9,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 
 	"github.com/wailsapp/wails/v2/pkg/runtime"
@@ -25,21 +26,17 @@ func (a *App) ListAVDs() ([]string, error) {
 			var avds []string
 			for _, file := range files {
 				if !file.IsDir() && strings.HasSuffix(file.Name(), ".ini") {
-					// Filename is "AVD_Name.ini", we just want "AVD_Name"
 					name := strings.TrimSuffix(file.Name(), ".ini")
 					avds = append(avds, name)
 				}
 			}
 			if len(avds) > 0 {
-				fmt.Printf("Found %d AVDs via fast discovery: %v\n", len(avds), avds)
 				return avds, nil
 			}
 		}
 	}
 
 	// Step 2: Fallback to the original emulator command if filesystem discovery fails or finds nothing.
-	fmt.Println("Fast AVD discovery failed or found nothing, falling back to emulator -list-avds")
-
 	emulatorPath, err := helper.GetEmulatorPath()
 	if err != nil {
 		return nil, err
@@ -69,8 +66,6 @@ func (a *App) ListAVDs() ([]string, error) {
 	if len(avds) == 0 {
 		return nil, fmt.Errorf("no AVDs found. Please create an AVD first")
 	}
-
-	fmt.Printf("Found %d AVDs via fallback discovery: %v\n", len(avds), avds)
 
 	return avds, nil
 }
@@ -316,7 +311,9 @@ func (a *App) DeleteAVD(avdName string) error {
 	return nil
 }
 
-// Retrieves detailed information about an AVD including disk usage
+// Retrieves info about an AVD: path and running state (via lock-folder check).
+// If a stale lock folder is detected (emulator process no longer alive), it is cleaned up.
+// Does NOT calculate disk usage — use GetAvdDiskUsage for that.
 func (a *App) GetAvdInfo(avdName string) (models.AvdInfo, error) {
 	avdDir, err := helper.GetAvdDirectory()
 	if err != nil {
@@ -344,16 +341,76 @@ func (a *App) GetAvdInfo(avdName string) (models.AvdInfo, error) {
 		return models.AvdInfo{}, fmt.Errorf("could not find path in AVD ini file")
 	}
 
-	size, err := helper.DirSize(avdPath)
-	if err != nil {
-		fmt.Printf("Error calculating size for %s: %v\n", avdPath, err)
+	// Check for lock folder to determine if AVD is currently running
+	lockPath := filepath.Join(avdPath, "hardware-qemu.ini.lock")
+	isRunning := false
+
+	if info, statErr := os.Stat(lockPath); statErr == nil && info.IsDir() {
+		// Lock folder exists — check if the emulator process is actually alive
+		pidFile := filepath.Join(lockPath, "pid")
+		pidData, readErr := os.ReadFile(pidFile)
+		if readErr == nil {
+			pidStr := strings.TrimSpace(string(pidData))
+			pid, parseErr := strconv.Atoi(pidStr)
+			if parseErr == nil {
+				if helper.IsProcessAlive(pid) {
+					isRunning = true
+				} else {
+					// Stale lock: process is dead, clean up
+					_ = os.RemoveAll(lockPath)
+				}
+			} else {
+				// Can't parse PID, treat as stale
+				_ = os.RemoveAll(lockPath)
+			}
+		} else {
+			// No pid file in lock folder, treat as stale
+			_ = os.RemoveAll(lockPath)
+		}
 	}
 
 	return models.AvdInfo{
-		Name:      avdName,
-		Path:      avdPath,
-		DiskUsage: helper.FormatSize(size),
+		Name:    avdName,
+		Path:    avdPath,
+		Running: isRunning,
 	}, nil
+}
+
+// GetAvdDiskUsage calculates disk usage for an AVD (can be slow for large AVDs).
+// Intended to be called in the background after cards are already displayed.
+func (a *App) GetAvdDiskUsage(avdName string) (string, error) {
+	avdDir, err := helper.GetAvdDirectory()
+	if err != nil {
+		return "", err
+	}
+
+	iniPath := filepath.Join(avdDir, avdName+".ini")
+	file, err := os.Open(iniPath)
+	if err != nil {
+		return "", err
+	}
+	defer file.Close()
+
+	var avdPath string
+	scanner := bufio.NewScanner(file)
+	for scanner.Scan() {
+		line := scanner.Text()
+		if strings.HasPrefix(line, "path=") {
+			avdPath = strings.TrimPrefix(line, "path=")
+			break
+		}
+	}
+
+	if avdPath == "" {
+		return "", fmt.Errorf("could not find path in AVD ini file")
+	}
+
+	size, err := helper.DirSize(avdPath)
+	if err != nil {
+		return "", err
+	}
+
+	return helper.FormatSize(size), nil
 }
 
 // Opens the AVD's directory in Windows Explorer

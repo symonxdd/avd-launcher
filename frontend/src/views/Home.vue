@@ -164,7 +164,7 @@
 
 <script setup>
 import { ref, onMounted, onBeforeUnmount, nextTick, computed } from 'vue'
-import { ListAVDs, StartAVD, StopAVD, ListRunningAVDs, GetAndroidSdkEnv, OpenEnvironmentVariables, RenameAVD, DeleteAVD, SelectAndSaveSdkPath, GetAvdInfo, OpenAvdFolder } from '../../wailsjs/go/app/App'
+import { ListAVDs, StartAVD, StopAVD, ListRunningAVDs, GetAndroidSdkEnv, OpenEnvironmentVariables, RenameAVD, DeleteAVD, SelectAndSaveSdkPath, GetAvdInfo, GetAvdDiskUsage, OpenAvdFolder } from '../../wailsjs/go/app/App'
 import EnvInfoModal from '../components/EnvInfoModal.vue'
 import { useAvdStore } from '../stores/avdStore'
 import { AvdState } from '../enums/avdState'
@@ -322,56 +322,62 @@ async function selectSdkPath() {
 async function initData() {
   try {
     const env = await GetAndroidSdkEnv()
-    // env = '' // for debug purposes
-
-    // TEMPORARILY FORCE THE WARNING FOR TESTING:
-    // sdkMissing.value = true;
-    // localStorage.setItem('avd_sdk_missing', 'true');
-    // store.avds = [];
-    // return;
 
     if (!env.path || env.path === '') {
       sdkMissing.value = true
       localStorage.setItem('avd_sdk_missing', 'true')
-      store.avds = [] // Clear any stale AVDs
+      store.avds = []
       return
     }
 
     sdkMissing.value = false
     localStorage.setItem('avd_sdk_missing', 'false')
 
-    const avds = await ListAVDs()
-    const runningAvds = await ListRunningAVDs()
+    // Step 1: Get AVD names (instant, reads .ini files)
+    const avdNames = await ListAVDs()
 
-    for (const name of avds) {
-      const isRunning = runningAvds?.includes(name)
-
-      let info = null
-      try {
-        info = await GetAvdInfo(name)
-      } catch (e) {
+    // Step 2: Get info + running state for all AVDs in parallel (instant, lock-folder check)
+    const infos = await Promise.all(
+      avdNames.map(name => GetAvdInfo(name).catch(e => {
         console.error(`Error fetching info for ${name}:`, e)
-      }
+        return null
+      }))
+    )
 
-      // If already in store, update its state
+    // Step 3: Show cards immediately with correct running state
+    for (let i = 0; i < avdNames.length; i++) {
+      const name = avdNames[i]
+      const info = infos[i]
+      const isRunning = info?.running ?? false
+
       const existing = store.avds.find(a => a.name === name)
       const update = {
         state: isRunning ? AvdState.RUNNING : AvdState.POWERED_OFF,
-        diskUsage: info?.diskUsage,
         path: info?.path
       }
 
       if (existing) {
         store.updateAvdStatus(name, update)
       } else {
-        // Otherwise, add it
         store.avds.push({
           name,
           ...update,
+          diskUsage: null,
           hover: false
         })
       }
     }
+
+    // Step 4: Fetch disk usage in the background (can be slow)
+    Promise.all(
+      avdNames.map(name =>
+        GetAvdDiskUsage(name)
+          .then(usage => {
+            store.updateAvdStatus(name, { diskUsage: usage })
+          })
+          .catch(e => console.error(`Error fetching disk usage for ${name}:`, e))
+      )
+    )
   } catch (err) {
     showToast(`Error... ${err}`)
     console.log(err);

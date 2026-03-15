@@ -10,6 +10,10 @@ export function GetAndroidSdkEnv() {
   return window['go']['app']['App']['GetAndroidSdkEnv']();
 }
 
+export function GetAvdDiskUsage(arg1) {
+  return window['go']['app']['App']['GetAvdDiskUsage'](arg1);
+}
+
 export function GetAvdInfo(arg1) {
   return window['go']['app']['App']['GetAvdInfo'](arg1);
 }

@@ -23,6 +23,7 @@ export namespace models {
 	    name: string;
 	    path: string;
 	    diskUsage: string;
+	    running: boolean;
 	
 	    static createFrom(source: any = {}) {
 	        return new AvdInfo(source);
@@ -33,6 +34,7 @@ export namespace models {
 	        this.name = source["name"];
 	        this.path = source["path"];
 	        this.diskUsage = source["diskUsage"];
+	        this.running = source["running"];
 	    }
 	}
 

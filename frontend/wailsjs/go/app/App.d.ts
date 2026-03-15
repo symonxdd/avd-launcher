@@ -7,6 +7,8 @@ export function DeleteAVD(arg1:string):Promise<void>;
 
 export function GetAndroidSdkEnv():Promise<helper.SdkInfo>;
 
+export function GetAvdDiskUsage(arg1:string):Promise<string>;
+
 export function GetAvdInfo(arg1:string):Promise<models.AvdInfo>;
 
 export function ListAVDs():Promise<Array<string>>;
