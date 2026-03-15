@@ -19,6 +19,7 @@
   align-items: center;
   gap: 8px;
   -webkit-app-region: no-drag;
+  --wails-draggable: no-drag;
   position: relative;
   z-index: 105;
 }
@@ -117,6 +118,7 @@
   text-decoration: none;
   cursor: default;
   -webkit-app-region: no-drag;
+  --wails-draggable: no-drag;
 }
 
 .navLink:hover {
@@ -150,6 +152,7 @@
   align-items: center;
   gap: 8px;
   -webkit-app-region: no-drag;
+  --wails-draggable: no-drag;
 }
 
 .winBtn {

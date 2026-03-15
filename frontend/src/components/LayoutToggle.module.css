@@ -12,6 +12,7 @@
   transition: background 0.2s ease;
   color: var(--text-secondary);
   -webkit-app-region: no-drag;
+  --wails-draggable: no-drag;
 }
 
 .toggleBtn:hover {

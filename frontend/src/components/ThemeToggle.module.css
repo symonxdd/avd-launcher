@@ -11,6 +11,7 @@
   justify-content: center;
   color: var(--text-secondary);
   -webkit-app-region: no-drag;
+  --wails-draggable: no-drag;
 }
 
 .toggleBtn:hover {

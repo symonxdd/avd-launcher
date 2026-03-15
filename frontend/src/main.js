@@ -24,4 +24,4 @@ app.mount('#app')
 
 // Apply theme after mount
 const themeStore = useThemeStore();
-themeStore.initTheme();
+themeStore.initTheme();
