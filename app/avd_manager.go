@@ -341,12 +341,86 @@ func (a *App) GetAvdInfo(avdName string) (models.AvdInfo, error) {
 		return models.AvdInfo{}, fmt.Errorf("could not find path in AVD ini file")
 	}
 
+	var avd models.AvdInfo
+	avd.Name = avdName
+	avd.Path = avdPath
+
+	// Read config.ini for more metadata
+	configPath := filepath.Join(avdPath, "config.ini")
+	if configFile, err := os.Open(configPath); err == nil {
+		defer configFile.Close()
+		configScanner := bufio.NewScanner(configFile)
+		for configScanner.Scan() {
+			line := strings.TrimSpace(configScanner.Text())
+			if line == "" || strings.HasPrefix(line, "#") {
+				continue
+			}
+
+			parts := strings.SplitN(line, "=", 2)
+			if len(parts) < 2 {
+				continue
+			}
+			key := strings.TrimSpace(parts[0])
+			val := strings.TrimSpace(parts[1])
+
+			switch key {
+			case "avd.ini.displayname":
+				avd.DisplayName = val
+			case "abi.type":
+				avd.Abi = val
+			case "hw.ramSize":
+				avd.RamSize = val
+			case "PlayStore.enabled":
+				if val == "true" || val == "yes" {
+					avd.HasGooglePlay = true
+				}
+			case "target":
+				if strings.HasPrefix(val, "android-") {
+					avd.ApiLevel = strings.TrimPrefix(val, "android-")
+				}
+			case "image.sysdir.1":
+				sysDir := val
+				p := strings.FieldsFunc(sysDir, func(r rune) bool {
+					return r == '/' || r == '\\'
+				})
+				for _, part := range p {
+					if strings.HasPrefix(part, "android-") {
+						avd.ApiLevel = strings.TrimPrefix(part, "android-")
+						break
+					}
+				}
+			case "hw.lcd.width":
+				if avd.Resolution == "" {
+					avd.Resolution = val
+				} else {
+					avd.Resolution = val + "x" + avd.Resolution
+				}
+			case "hw.lcd.height":
+				if avd.Resolution == "" {
+					avd.Resolution = val
+				} else {
+					avd.Resolution = avd.Resolution + "x" + val
+				}
+			}
+		}
+	}
+
+	// Post-process metadata
+	if avd.ApiLevel != "" {
+		avd.AndroidVersion, avd.AndroidCodename = getAndroidVariantInfo(avd.ApiLevel)
+	}
+
+	if avd.DisplayName == "" {
+		avd.DisplayName = avd.Name
+	}
+
 	// Check for lock folder to determine if AVD is currently running
+	// ... (rest of the logic)
 	lockPath := filepath.Join(avdPath, "hardware-qemu.ini.lock")
 	isRunning := false
 
 	if info, statErr := os.Stat(lockPath); statErr == nil && info.IsDir() {
-		// Lock folder exists — check if the emulator process is actually alive
+		// ...
 		pidFile := filepath.Join(lockPath, "pid")
 		pidData, readErr := os.ReadFile(pidFile)
 		if readErr == nil {
@@ -356,24 +430,18 @@ func (a *App) GetAvdInfo(avdName string) (models.AvdInfo, error) {
 				if helper.IsProcessAlive(pid) {
 					isRunning = true
 				} else {
-					// Stale lock: process is dead, clean up
 					_ = os.RemoveAll(lockPath)
 				}
 			} else {
-				// Can't parse PID, treat as stale
 				_ = os.RemoveAll(lockPath)
 			}
 		} else {
-			// No pid file in lock folder, treat as stale
 			_ = os.RemoveAll(lockPath)
 		}
 	}
 
-	return models.AvdInfo{
-		Name:    avdName,
-		Path:    avdPath,
-		Running: isRunning,
-	}, nil
+	avd.Running = isRunning
+	return avd, nil
 }
 
 // GetAvdDiskUsage calculates disk usage for an AVD (can be slow for large AVDs).
@@ -420,4 +488,36 @@ func (a *App) OpenAvdFolder(path string) {
 	// Or select it. Let's just open it.
 	cmd := helper.NewCommand("explorer", path)
 	_ = cmd.Run()
+}
+
+func getAndroidVariantInfo(apiLevel string) (string, string) {
+	// versionMap: API level -> [Commercial Version, Codename]
+	versionMap := map[string]string{
+		"35": "15|Vanilla Ice Cream",
+		"34": "14|Upside Down Cake",
+		"33": "13|Tiramisu",
+		"32": "12L|S-V2",
+		"31": "12|Snow Cone",
+		"30": "11|Red Velvet Cake",
+		"29": "10|Quince Tart",
+		"28": "9.0|Pie",
+		"27": "8.1|Oreo",
+		"26": "8.0|Oreo",
+		"25": "7.1|Nougat",
+		"24": "7.0|Nougat",
+		"23": "6.0|Marshmallow",
+		"22": "5.1|Lollipop",
+		"21": "5.0|Lollipop",
+		"20": "4.4W|KitKat",
+		"19": "4.4|KitKat",
+		"18": "4.3|Jelly Bean",
+		"17": "4.2|Jelly Bean",
+		"16": "4.1|Jelly Bean",
+	}
+
+	if info, ok := versionMap[apiLevel]; ok {
+		parts := strings.Split(info, "|")
+		return "Android " + parts[0], parts[1]
+	}
+	return "Android " + apiLevel, ""
 }

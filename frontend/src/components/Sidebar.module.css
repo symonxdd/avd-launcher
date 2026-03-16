@@ -58,6 +58,7 @@
   line-height: 1;
   margin-top: -4px;
   white-space: nowrap;
+  opacity: 0.6;
 }
 
 .logoTextContainer {

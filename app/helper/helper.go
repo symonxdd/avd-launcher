@@ -103,13 +103,19 @@ func GetAndroidSdkPath() SdkInfo {
 		{`C:\Program Files (x86)\Android\android-sdk`, "default location (program files)"},
 	}
 
+	var info SdkInfo
 	for _, cp := range commonPaths {
 		if IsValidSdkPath(cp.path) {
-			return SdkInfo{Path: cp.path, Source: cp.source}
+			info = SdkInfo{Path: cp.path, Source: cp.source}
+			break
 		}
 	}
 
-	return SdkInfo{Path: "", Source: "Not found"}
+	if info.Path == "" {
+		return SdkInfo{Path: "", Source: "Not found"}
+	}
+
+	return info
 }
 
 // Returns the avdmanager executable path

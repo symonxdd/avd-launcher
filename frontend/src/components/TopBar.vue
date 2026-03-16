@@ -8,7 +8,10 @@
     <!-- Centered Branding (Top Nav mode only) -->
     <div v-if="layoutStore.layoutMode === 'top-nav'" :class="styles.brandingCenter">
       <img src="../assets/images/appicon-no-bg.png" alt="App logo" :class="styles.appIcon" />
-      <span :class="styles.appTitle">AVD Launcher</span>
+      <div :class="styles.logoTextContainer">
+        <span :class="styles.appTitle">AVD Launcher</span>
+        <span v-if="isDev" :class="styles.devIndicator">(dev)</span>
+      </div>
     </div>
 
     <div
@@ -48,6 +51,7 @@ import styles from './TopBar.module.css';
 
 const route = useRoute();
 const layoutStore = useLayoutStore();
+const isDev = import.meta.env.MODE === 'development';
 
 const navigationLinks = [
   { href: '/', label: 'Home' },

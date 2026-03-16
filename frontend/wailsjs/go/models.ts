@@ -21,9 +21,17 @@ export namespace models {
 	
 	export class AvdInfo {
 	    name: string;
+	    displayName: string;
 	    path: string;
 	    diskUsage: string;
 	    running: boolean;
+	    apiLevel: string;
+	    androidVersion: string;
+	    androidCodename: string;
+	    abi: string;
+	    ramSize: string;
+	    resolution: string;
+	    hasGooglePlay: boolean;
 	
 	    static createFrom(source: any = {}) {
 	        return new AvdInfo(source);
@@ -32,9 +40,17 @@ export namespace models {
 	    constructor(source: any = {}) {
 	        if ('string' === typeof source) source = JSON.parse(source);
 	        this.name = source["name"];
+	        this.displayName = source["displayName"];
 	        this.path = source["path"];
 	        this.diskUsage = source["diskUsage"];
 	        this.running = source["running"];
+	        this.apiLevel = source["apiLevel"];
+	        this.androidVersion = source["androidVersion"];
+	        this.androidCodename = source["androidCodename"];
+	        this.abi = source["abi"];
+	        this.ramSize = source["ramSize"];
+	        this.resolution = source["resolution"];
+	        this.hasGooglePlay = source["hasGooglePlay"];
 	    }
 	}
 

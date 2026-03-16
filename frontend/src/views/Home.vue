@@ -42,7 +42,65 @@
           <div :class="styles.avdAvatarContainer">
             <div :class="styles.avdAvatar">{{ avd.name.charAt(0).toUpperCase() }}</div>
           </div>
-          <div :class="styles.avdName">{{ avd.name }}</div>
+          <div :class="styles.avdNameContainer">
+            <div :class="styles.avdName">{{ avd.displayName || avd.name }}</div>
+            <div :class="styles.infoTooltipTrigger">
+              <v-icon name="hi-information-circle" :class="styles.infoIcon" />
+              <div :class="styles.infoTooltip">
+                <div :class="styles.tooltipHeader">AVD Details</div>
+                <div :class="styles.tooltipGrid">
+                  <div :class="styles.tooltipColumn">
+                    <div :class="styles.tooltipRow">
+                      <div :class="styles.tooltipValueGroup">
+                        <span :class="styles.tooltipLabel">Platform:</span>
+                        <span :class="styles.tooltipValue">{{ avd.androidVersion || 'Android' }}</span>
+                      </div>
+                      <small :class="styles.tooltipExplanation">API {{ avd.apiLevel }} – {{ avd.androidCodename
+                      }}</small>
+                    </div>
+                    <div :class="styles.tooltipRow">
+                      <div :class="styles.tooltipValueGroup">
+                        <span :class="styles.tooltipLabel">Architecture:</span>
+                        <span :class="styles.tooltipValue">{{ avd.abi || '?' }}</span>
+                      </div>
+                      <small :class="styles.tooltipExplanation">The emulated CPU architecture.</small>
+                    </div>
+                    <div :class="styles.tooltipRow">
+                      <div :class="styles.tooltipValueGroup">
+                        <span :class="styles.tooltipLabel">Google Play:</span>
+                        <span :class="styles.tooltipValue">{{ avd.hasGooglePlay ? 'Yes' : 'No' }}</span>
+                      </div>
+                      <small :class="styles.tooltipExplanation">Includes Play Store services.</small>
+                    </div>
+                  </div>
+
+                  <div :class="styles.tooltipColumn">
+                    <div :class="styles.tooltipRow">
+                      <div :class="styles.tooltipValueGroup">
+                        <span :class="styles.tooltipLabel">Memory:</span>
+                        <span :class="styles.tooltipValue">{{ avd.ramSize || '?' }} MB</span>
+                      </div>
+                      <small :class="styles.tooltipExplanation">Memory allocated to this device.</small>
+                    </div>
+                    <div :class="styles.tooltipRow">
+                      <div :class="styles.tooltipValueGroup">
+                        <span :class="styles.tooltipLabel">Resolution:</span>
+                        <span :class="styles.tooltipValue">{{ avd.resolution || '?' }}</span>
+                      </div>
+                      <small :class="styles.tooltipExplanation">Emulated screen pixel dimensions.</small>
+                    </div>
+                    <div :class="styles.tooltipRow">
+                      <div :class="styles.tooltipValueGroup">
+                        <span :class="styles.tooltipLabel">Storage:</span>
+                        <span :class="styles.tooltipValue">{{ avd.diskUsage || 'Calculating...' }}</span>
+                      </div>
+                      <small :class="styles.tooltipExplanation">Total size on disk.</small>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
           <button :class="[styles.menuButton, { [styles.menuVisible]: avd.hover }]" @click="toggleMenu(avd, $event)">
             <v-icon name="hi-dots-horizontal" />
           </button>
@@ -55,10 +113,6 @@
             <span :class="styles.statusPulse"></span>
           </div>
           <span :class="styles.statusLabel">{{ avd.state }}</span>
-          <div v-if="avd.diskUsage" :class="styles.diskUsage">
-            <v-icon name="hi-database" :scale="0.7" />
-            <span>{{ avd.diskUsage }}</span>
-          </div>
         </div>
 
         <!-- Animated context menu -->
@@ -357,11 +411,29 @@ async function initData() {
       }
 
       if (existing) {
-        store.updateAvdStatus(name, update)
+        store.updateAvdStatus(name, {
+          ...update,
+          displayName: info?.displayName,
+          apiLevel: info?.apiLevel,
+          androidVersion: info?.androidVersion,
+          androidCodename: info?.androidCodename,
+          abi: info?.abi,
+          ramSize: info?.ramSize,
+          resolution: info?.resolution,
+          hasGooglePlay: info?.hasGooglePlay
+        })
       } else {
         store.avds.push({
           name,
           ...update,
+          displayName: info?.displayName,
+          apiLevel: info?.apiLevel,
+          androidVersion: info?.androidVersion,
+          androidCodename: info?.androidCodename,
+          abi: info?.abi,
+          ramSize: info?.ramSize,
+          resolution: info?.resolution,
+          hasGooglePlay: info?.hasGooglePlay,
           diskUsage: null,
           hover: false
         })

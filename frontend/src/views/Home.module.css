@@ -66,12 +66,12 @@
   gap: 12px;
   /* Tighter gap to bring status closer */
   transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-  overflow: hidden;
   cursor: default;
 }
 
 .avdCard:hover {
   border-color: var(--border-strong);
+  z-index: 10;
 }
 
 /* ──── Card Header ──── */
@@ -295,21 +295,149 @@
   white-space: nowrap;
 }
 
-.diskUsage {
+.avdNameContainer {
   display: flex;
   align-items: center;
-  gap: 4px;
-  font-size: 0.72rem;
-  color: var(--text-secondary);
-  opacity: 0.5;
-  margin-left: auto;
-  padding-right: 2px;
-  transition: opacity 0.2s;
+  gap: 6px;
+  flex: 1;
 }
 
-.avdCard:hover .diskUsage {
-  opacity: 0.8;
+.infoTooltipTrigger {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  transition: background 0.1s ease;
+  cursor: default;
 }
+
+.infoTooltipTrigger:hover {
+  background: var(--bg-card-active);
+}
+
+.infoIcon {
+  font-size: 1.1rem;
+  color: var(--text-secondary);
+  opacity: 0; /* Hidden by default */
+  transition: opacity 0s, color 0.1s ease;
+  margin-top: -1px;
+}
+
+/* Show icon when the whole card is hovered */
+.avdCard:hover .infoIcon {
+  opacity: 1;
+}
+
+.infoTooltipTrigger:hover .infoIcon {
+  opacity: 1;
+  color: var(--text-primary);
+}
+
+.infoTooltip {
+  position: absolute;
+  top: calc(100% + 12px);
+  left: 50%;
+  transform: translateX(-50%) translateY(-8px);
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  padding: 16px 18px;
+  border-radius: 16px;
+  width: max-content;
+  color: var(--text-primary);
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.35);
+  pointer-events: none;
+  opacity: 0;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: 2000;
+  display: flex;
+  flex-direction: column;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  white-space: normal;
+}
+
+.infoTooltip::after {
+  content: '';
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border-width: 6px;
+  border-style: solid;
+  border-color: transparent transparent var(--border-subtle) transparent;
+}
+
+.infoTooltipTrigger:hover .infoTooltip {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+.tooltipHeader {
+  font-weight: 800;
+  font-size: 0.9rem;
+  color: var(--text-primary);
+  border-bottom: 1px solid var(--border-glass);
+  padding-bottom: 8px;
+  margin-bottom: 16px;
+  /* Match bottom padding of 16px */
+  letter-spacing: -0.01em;
+}
+
+.tooltipGrid {
+  display: grid;
+  grid-template-columns: repeat(2, max-content);
+  gap: 40px;
+  /* Strong but compact separation */
+}
+
+.tooltipColumn {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.tooltipRow {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.tooltipValueGroup {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  /* Nicely vertically centered */
+  gap: 8px;
+}
+
+
+
+.tooltipLabel {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  font-weight: 700;
+  opacity: 0.9;
+}
+
+
+.tooltipValue {
+  font-size: 0.75rem;
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+.tooltipExplanation {
+  font-size: 0.68rem;
+  color: var(--text-secondary);
+  line-height: 1.3;
+  opacity: 0.6;
+  font-weight: 400;
+}
+
+/* .diskUsage removed from card view */
 
 @keyframes pulse-premium {
   0% {
@@ -546,11 +674,6 @@
   animation: slideDown 0.2s ease forwards;
 }
 
-:global(.theme-light) .modal {
-  background: rgba(255, 255, 255, 0.9);
-  border-color: rgba(0, 0, 0, 0.05);
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
-}
 
 /* modalPop animation removed in favor of slideUp/slideDown */
 

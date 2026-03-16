@@ -10,9 +10,9 @@ import './styles/native.css';
 import './styles/focus.css';
 
 import { addIcons, OhVueIcon } from "oh-vue-icons";
-import { HiDeviceMobile, HiDocumentText, HiCog, HiSun, HiMoon, HiAdjustments, HiViewGrid, HiGift, HiPencil, HiTrash, HiPlay, HiStop, HiExclamation, HiDotsHorizontal, HiArrowUp, HiArrowDown, HiInformationCircle, HiCheck, HiX, HiSparkles, HiRefresh, HiFolderOpen, HiDatabase, HiMenu, FaGithub, FaSnowflake, FaWind } from "oh-vue-icons/icons";
+import { HiDeviceMobile, HiDocumentText, HiCog, HiSun, HiMoon, HiAdjustments, HiViewGrid, HiGift, HiPencil, HiTrash, HiPlay, HiStop, HiExclamation, HiDotsHorizontal, HiArrowUp, HiArrowDown, HiInformationCircle, HiCheck, HiX, HiSparkles, HiRefresh, HiFolderOpen, HiDatabase, HiMenu, HiChip, HiShoppingBag, FaGithub, FaSnowflake, FaWind } from "oh-vue-icons/icons";
 
-addIcons(HiDeviceMobile, HiDocumentText, HiCog, HiSun, HiMoon, HiAdjustments, HiViewGrid, HiGift, HiPencil, HiTrash, HiPlay, HiStop, HiExclamation, HiDotsHorizontal, HiArrowUp, HiArrowDown, HiInformationCircle, HiCheck, HiX, HiSparkles, HiRefresh, HiFolderOpen, HiDatabase, HiMenu, FaGithub, FaSnowflake, FaWind);
+addIcons(HiDeviceMobile, HiDocumentText, HiCog, HiSun, HiMoon, HiAdjustments, HiViewGrid, HiGift, HiPencil, HiTrash, HiPlay, HiStop, HiExclamation, HiDotsHorizontal, HiArrowUp, HiArrowDown, HiInformationCircle, HiCheck, HiX, HiSparkles, HiRefresh, HiFolderOpen, HiDatabase, HiMenu, HiChip, HiShoppingBag, FaGithub, FaSnowflake, FaWind);
 
 const app = createApp(App)
 app.use(createPinia())

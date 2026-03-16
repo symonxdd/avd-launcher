@@ -50,6 +50,22 @@
   letter-spacing: -0.01em;
 }
 
+.logoTextContainer {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.devIndicator {
+  font-size: 0.65rem;
+  color: var(--text-secondary);
+  font-weight: 500;
+  line-height: 1;
+  white-space: nowrap;
+  opacity: 0.6;
+  margin-top: 1px;
+}
+
 .navPillContainer {
   position: absolute;
   top: 50px;
