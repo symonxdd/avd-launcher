@@ -70,7 +70,7 @@
                         <span :class="styles.tooltipLabel">Google Play:</span>
                         <span :class="styles.tooltipValue">{{ avd.hasGooglePlay ? 'Yes' : 'No' }}</span>
                       </div>
-                      <small :class="styles.tooltipExplanation">Includes Play Store services.</small>
+                        <small :class="styles.tooltipExplanation">Includes the Play Store app and supports Google services (Maps, Push, etc.).</small>
                     </div>
                   </div>
 
@@ -162,7 +162,7 @@
       @animationend="handleEditAnimationEnd">
       <div :class="styles.modal" @click.stop>
         <h3>Rename AVD</h3>
-        <p>Enter a new name for <strong>{{ editAvd?.name }}</strong>:</p>
+        <p>Enter a new name for <strong>{{ editAvd?.displayName || editAvd?.name }}</strong>:</p>
         <input v-model="editAvdName" id="edit-avd-name" name="edit-avd-name" placeholder="New AVD Name"
           @keyup.enter="saveEdit" spellcheck="false" autocorrect="off" autocapitalize="off" />
         <div :class="styles.allowedCharsInfo">
@@ -235,16 +235,16 @@ const isRenaming = ref(false)
 
 const isRenameDisabled = computed(() => {
   if (!editAvd.value || isRenaming.value) return true;
-  const oldName = editAvd.value.name;
+  const oldDisplayName = editAvd.value.displayName || editAvd.value.name;
   const newName = editAvdName.value.trim();
-  return newName === '' || oldName === newName;
+  return newName === '' || oldDisplayName === newName;
 })
 
 const isCaseOnlyChange = computed(() => {
   if (!editAvd.value) return false;
-  const oldName = editAvd.value.name;
+  const oldDisplayName = editAvd.value.displayName || editAvd.value.name;
   const newName = editAvdName.value.trim();
-  return oldName !== newName && oldName.toLowerCase() === newName.toLowerCase();
+  return oldDisplayName !== newName && oldDisplayName.toLowerCase() === newName.toLowerCase();
 })
 
 const showDeleteDialog = ref(false)
@@ -290,7 +290,7 @@ function toggleMenu(avd, event) {
 function openEditDialog(avd) {
   showEditDialog.value = true
   editAvd.value = avd
-  editAvdName.value = avd.name
+  editAvdName.value = avd.displayName || avd.name
   menuAvd.value = null
 }
 
@@ -311,17 +311,19 @@ function handleEditAnimationEnd(e) {
 
 async function saveEdit() {
   if (editAvd.value) {
-    const oldName = editAvd.value.name;
+    const oldInternalName = editAvd.value.name;
+    const oldDisplayName = editAvd.value.displayName || oldInternalName;
     const newName = editAvdName.value.trim();
-    if (oldName === newName || newName === '') {
+    if (oldDisplayName === newName || newName === '') {
       closeEditDialog();
       return;
     }
     try {
       isRenaming.value = true;
-      await RenameAVD(oldName, newName);
+      await RenameAVD(oldInternalName, newName);
       // Update local store to reflect the change
       editAvd.value.name = newName;
+      editAvd.value.displayName = newName;
       showToast('AVD Renamed ✅');
       closeEditDialog();
     } catch (err) {

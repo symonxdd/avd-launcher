@@ -430,6 +430,8 @@
 }
 
 .tooltipExplanation {
+  display: block;
+  max-width: 160px;
   font-size: 0.68rem;
   color: var(--text-secondary);
   line-height: 1.3;
