@@ -5,8 +5,8 @@
   <h1>AVD Launcher</h1>
 </div>
 
-- A lightning-fast, ultra-lightweight native app for launching Android Virtual Devices.  
-- Cross-platform, portable, and minimal.
+- ⚡ AVD Launcher — a very simple Android Virtual Devices manager 
+- Cross-platform, portable, and minimal
 
 <br/>
 
