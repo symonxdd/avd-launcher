@@ -7,203 +7,45 @@
         <span :class="styles.countBadge" v-show="store.avds.length">{{ store.avds.length }}</span>
       </div>
 
-      <div v-if="sdkMissing" :class="styles.androidHomeWarning">
-        <v-icon name="hi-exclamation" :class="styles.warningIcon" :scale="1.5" />
-        <div :class="styles.warningContent">
-          <div :class="styles.warningText">
-            <div :class="styles.warningTextFirstLine">Android SDK not found</div>
-            <p>AVD Launcher could not locate your Android SDK in common locations nor via the ANDROID_HOME environment
-              variable.</p>
-            <p>Use the 'Select SDK Location' button to choose where your Android SDK is installed, or set the
-              ANDROID_HOME environment variable to that location.</p>
-            <button v-if="isWindows" :class="styles.envLearnMore" @click="openEnvInfo">
-              What are environment variables?
-            </button>
-          </div>
-          <div :class="styles.warningActions">
-            <button :class="[styles.btn, styles.btnPrimary, styles.warningBtn]" @click="selectSdkPath">
-              Select SDK Location
-            </button>
-            <button v-if="isWindows" :class="[styles.btn, styles.btnSecondary, styles.warningBtn]" @click="openEnvVars">
-              Open Environment Variables
-            </button>
-          </div>
-        </div>
-      </div>
+      <MissingSdkWarning v-if="sdkMissing" 
+        :is-windows="isWindows" 
+        @select-sdk="selectSdkPath" 
+        @open-env-vars="openEnvVars" 
+        @open-env-info="openEnvInfo" />
     </div>
 
     <div v-show="store.avds.length && !sdkMissing" :class="styles.avdGrid">
-      <div v-for="avd in store.avds" :key="avd.name"
-        :class="[styles.avdCard, { [styles.running]: avd.state === AvdState.RUNNING }]" @mouseenter="avd.hover = true"
-        @mouseleave="avd.hover = false">
-
-        <!-- Card header: avatar + info (name) + menu -->
-        <div :class="styles.avdCardHeader">
-          <div :class="styles.avdAvatarContainer">
-            <div :class="styles.avdAvatar">{{ avd.name.charAt(0).toUpperCase() }}</div>
-          </div>
-          <div :class="styles.avdNameContainer">
-            <div :class="styles.avdName">{{ avd.displayName || avd.name }}</div>
-            <div :class="styles.infoTooltipTrigger">
-              <v-icon name="hi-information-circle" :class="styles.infoIcon" />
-              <div :class="styles.infoTooltip">
-                <div :class="styles.tooltipHeader">AVD Details</div>
-                <div :class="styles.tooltipGrid">
-                  <div :class="styles.tooltipColumn">
-                    <div :class="styles.tooltipRow">
-                      <div :class="styles.tooltipValueGroup">
-                        <span :class="styles.tooltipLabel">Platform:</span>
-                        <span :class="styles.tooltipValue">{{ avd.androidVersion || 'Android' }}</span>
-                      </div>
-                      <small :class="styles.tooltipExplanation">API {{ avd.apiLevel }} – {{ avd.androidCodename
-                      }}</small>
-                    </div>
-                    <div :class="styles.tooltipRow">
-                      <div :class="styles.tooltipValueGroup">
-                        <span :class="styles.tooltipLabel">Architecture:</span>
-                        <span :class="styles.tooltipValue">{{ avd.abi || '?' }}</span>
-                      </div>
-                      <small :class="styles.tooltipExplanation">The emulated CPU architecture.</small>
-                    </div>
-                    <div :class="styles.tooltipRow">
-                      <div :class="styles.tooltipValueGroup">
-                        <span :class="styles.tooltipLabel">Google Play:</span>
-                        <span :class="styles.tooltipValue">{{ avd.hasGooglePlay ? 'Yes' : 'No' }}</span>
-                      </div>
-                        <small :class="styles.tooltipExplanation">Includes the Play Store app and supports Google services (Maps, Push, etc.).</small>
-                    </div>
-                  </div>
-
-                  <div :class="styles.tooltipColumn">
-                    <div :class="styles.tooltipRow">
-                      <div :class="styles.tooltipValueGroup">
-                        <span :class="styles.tooltipLabel">Memory:</span>
-                        <span :class="styles.tooltipValue">{{ avd.ramSize || '?' }} MB</span>
-                      </div>
-                      <small :class="styles.tooltipExplanation">Memory allocated to this device.</small>
-                    </div>
-                    <div :class="styles.tooltipRow">
-                      <div :class="styles.tooltipValueGroup">
-                        <span :class="styles.tooltipLabel">Resolution:</span>
-                        <span :class="styles.tooltipValue">{{ avd.resolution || '?' }}</span>
-                      </div>
-                      <small :class="styles.tooltipExplanation">Emulated screen pixel dimensions.</small>
-                    </div>
-                    <div :class="styles.tooltipRow">
-                      <div :class="styles.tooltipValueGroup">
-                        <span :class="styles.tooltipLabel">Storage:</span>
-                        <span :class="styles.tooltipValue">{{ avd.diskUsage || 'Calculating...' }}</span>
-                      </div>
-                      <small :class="styles.tooltipExplanation">Total size on disk.</small>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-          <button :class="[styles.menuButton, { [styles.menuVisible]: avd.hover }]" @click="toggleMenu(avd, $event)">
-            <v-icon name="hi-dots-horizontal" />
-          </button>
-        </div>
-
-        <!-- Status indicator: dot + label (Flows under name/avatar) -->
-        <div :class="[styles.avdStatus, styles[getStateClass(avd.state)]]">
-          <div :class="styles.statusDotContainer">
-            <span :class="styles.statusDot"></span>
-            <span :class="styles.statusPulse"></span>
-          </div>
-          <span :class="styles.statusLabel">{{ avd.state }}</span>
-        </div>
-
-        <!-- Animated context menu -->
-        <Teleport to="body">
-          <transition name="fade-fast">
-            <div v-if="menuAvd === avd" :class="styles.contextMenu"
-              :style="{ top: `${menuPosition.y}px`, left: `${menuPosition.x}px` }">
-              <button @click="openFolder(avd.path)">
-                <v-icon name="hi-folder-open" :scale="0.85" />
-                <span>Show on Disk</span>
-              </button>
-              <button @click="openEditDialog(avd)">
-                <v-icon name="hi-pencil" :scale="0.85" />
-                <span>Rename</span>
-              </button>
-              <button @click="openDeleteDialog(avd)" :class="styles.deleteItem">
-                <v-icon name="hi-trash" :scale="0.85" />
-                <span>Delete</span>
-              </button>
-            </div>
-          </transition>
-        </Teleport>
-
-        <!-- Premium Action buttons with labels -->
-        <div :class="styles.avdActions">
-          <template v-if="avd.state === AvdState.POWERED_OFF">
-            <button :class="[styles.actionBtnPremium, styles.launch]" @click="startAVD(avd, false)">
-              <v-icon name="hi-play" :scale="1.1" />
-              <span>Launch</span>
-            </button>
-            <button :class="[styles.actionBtnPremium, styles.coldboot]" @click="startAVD(avd, true)">
-              <v-icon name="fa-snowflake" :scale="0.85" />
-              <span>Cold Boot</span>
-            </button>
-          </template>
-          <button :class="[styles.actionBtnPremium, styles.stop]" v-else :disabled="avd.state !== AvdState.RUNNING"
-            @click="stopAVD(avd.name)">
-            <v-icon name="hi-stop" :scale="1.1" />
-            <span>Stop</span>
-          </button>
-        </div>
-      </div>
+      <AvdCard v-for="avd in store.avds" :key="avd.name"
+        :avd="avd"
+        @toggle-menu="toggleMenu"
+        @launch="startAVD"
+        @stop="stopAVD" />
     </div>
 
-    <!-- Edit AVD name Modal -->
-    <div v-if="showEditDialog" :class="[styles.modalOverlay, { [styles.closing]: isEditClosing }]"
-      @animationend="handleEditAnimationEnd">
-      <div :class="styles.modal" @click.stop>
-        <h3>Rename AVD</h3>
-        <p>Enter a new name for <strong>{{ editAvd?.displayName || editAvd?.name }}</strong>:</p>
-        <input v-model="editAvdName" id="edit-avd-name" name="edit-avd-name" placeholder="New AVD Name"
-          @keyup.enter="saveEdit" spellcheck="false" autocorrect="off" autocapitalize="off" />
-        <div :class="styles.allowedCharsInfo">
-          <v-icon name="hi-sparkles" :scale="0.8" />
-          <span>The name can contain uppercase or lowercase letters, numbers, periods, underscores, parentheses, dashes,
-            and spaces.</span>
-        </div>
-        <transition name="fade-slide">
-          <div v-if="isCaseOnlyChange" :class="styles.renameHint">
-            <v-icon name="hi-information-circle" :scale="0.8" />
-            <span>To change only capitalization, first rename to something else, then back to the desired name with the
-              correct case.</span>
-          </div>
-        </transition>
-        <div :class="styles.modalActions">
-          <button :class="[styles.btn, styles.btnSecondary]" @click="closeEditDialog"
-            :disabled="isRenaming">Cancel</button>
-          <button :class="[styles.btn, styles.btnPrimary]" @click="saveEdit" :disabled="isRenameDisabled">
-            <template v-if="isRenaming">
-              <v-icon name="hi-refresh" animation="spin" :scale="0.8" :class="styles.loadingIcon" />
-              <span>Renaming...</span>
-            </template>
-            <span v-else>Confirm</span>
+    <!-- Animated context menu -->
+    <Teleport to="body">
+      <transition name="fade-fast">
+        <div v-if="menuAvd" :class="styles.contextMenu"
+          :style="{ top: `${menuPosition.y}px`, left: `${menuPosition.x}px` }">
+          <button @click="openFolder(menuAvd.path)">
+            <v-icon name="hi-folder-open" :scale="0.85" />
+            <span>Show on Disk</span>
+          </button>
+          <button @click="openEditDialog(menuAvd)">
+            <v-icon name="hi-pencil" :scale="0.85" />
+            <span>Rename</span>
+          </button>
+          <button @click="openDeleteDialog(menuAvd)" :class="styles.deleteItem">
+            <v-icon name="hi-trash" :scale="0.85" />
+            <span>Delete</span>
           </button>
         </div>
-      </div>
-    </div>
+      </transition>
+    </Teleport>
 
-    <!-- Delete AVD Modal -->
-    <div v-if="showDeleteDialog" :class="[styles.modalOverlay, { [styles.closing]: isDeleteClosing }]"
-      @animationend="handleDeleteAnimationEnd">
-      <div :class="styles.modal" @click.stop>
-        <h3>Delete AVD</h3>
-        <p>Are you sure you want to permanently delete <strong>{{ deleteAvdTarget?.name }} from your disk</strong>?</p>
-        <p :class="styles.warningTextSmall">This action cannot be undone.</p>
-        <div :class="styles.modalActions">
-          <button :class="[styles.btn, styles.btnSecondary]" @click="closeDeleteDialog">Cancel</button>
-          <button :class="[styles.btn, styles.btnDanger]" @click="confirmDeleteDialog">Delete</button>
-        </div>
-      </div>
-    </div>
+    <!-- Modals -->
+    <RenameAvdModal :show="showEditDialog" :avd="editAvd" @close="showEditDialog = false" @success="onRenameSuccess" @error="onRenameError" />
+    <DeleteAvdModal :show="showDeleteDialog" :avd="deleteAvdTarget" @close="showDeleteDialog = false" @success="onDeleteSuccess" @error="onDeleteError" />
 
     <!-- Env Vars Explanation Modal -->
     <EnvInfoModal :show="showEnvInfoDialog" :is-closing="isEnvInfoClosing" @close="closeEnvInfo"
@@ -217,38 +59,23 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onBeforeUnmount, nextTick, computed } from 'vue'
-import { ListAVDs, StartAVD, StopAVD, ListRunningAVDs, GetAndroidSdkEnv, OpenEnvironmentVariables, RenameAVD, DeleteAVD, SelectAndSaveSdkPath, GetAvdInfo, GetAvdDiskUsage, OpenAvdFolder } from '../../wailsjs/go/app/App'
+import { ref, onMounted, onBeforeUnmount, nextTick } from 'vue'
+import { ListAVDs, StartAVD, StopAVD, GetAndroidSdkEnv, OpenEnvironmentVariables, SelectAndSaveSdkPath, GetAvdInfo, GetAvdDiskUsage, OpenAvdFolder } from '../../wailsjs/go/app/App'
 import EnvInfoModal from '../components/EnvInfoModal.vue'
+import MissingSdkWarning from '../components/MissingSdkWarning.vue'
+import RenameAvdModal from '../components/RenameAvdModal.vue'
+import DeleteAvdModal from '../components/DeleteAvdModal.vue'
+import AvdCard from '../components/AvdCard.vue'
 import { useAvdStore } from '../stores/avdStore'
 import { AvdState } from '../enums/avdState'
-import { getStateClass } from '../utils/helper'
 import styles from './Home.module.css'
 
 const store = useAvdStore()
 
 const showEditDialog = ref(false)
-const isEditClosing = ref(false)
 const editAvd = ref(null)
-const editAvdName = ref('')
-const isRenaming = ref(false)
-
-const isRenameDisabled = computed(() => {
-  if (!editAvd.value || isRenaming.value) return true;
-  const oldDisplayName = editAvd.value.displayName || editAvd.value.name;
-  const newName = editAvdName.value.trim();
-  return newName === '' || oldDisplayName === newName;
-})
-
-const isCaseOnlyChange = computed(() => {
-  if (!editAvd.value) return false;
-  const oldDisplayName = editAvd.value.displayName || editAvd.value.name;
-  const newName = editAvdName.value.trim();
-  return oldDisplayName !== newName && oldDisplayName.toLowerCase() === newName.toLowerCase();
-})
 
 const showDeleteDialog = ref(false)
-const isDeleteClosing = ref(false)
 const deleteAvdTarget = ref(null)
 
 const showEnvInfoDialog = ref(false)
@@ -288,60 +115,29 @@ function toggleMenu(avd, event) {
 }
 
 function openEditDialog(avd) {
-  showEditDialog.value = true
   editAvd.value = avd
-  editAvdName.value = avd.displayName || avd.name
+  showEditDialog.value = true
   menuAvd.value = null
 }
 
-function closeEditDialog() {
-  isEditClosing.value = true
-}
-
-function handleEditAnimationEnd(e) {
-  // Only trigger when the overlay's own animation ends
-  if (e.target !== e.currentTarget) return;
-
-  if (isEditClosing.value) {
-    showEditDialog.value = false
-    isEditClosing.value = false
-    editAvd.value = null
-  }
-}
-
-async function saveEdit() {
+function onRenameSuccess({ oldName, newName }) {
   if (editAvd.value) {
-    const oldInternalName = editAvd.value.name;
-    const oldDisplayName = editAvd.value.displayName || oldInternalName;
-    const newName = editAvdName.value.trim();
-    if (oldDisplayName === newName || newName === '') {
-      closeEditDialog();
-      return;
-    }
-    try {
-      isRenaming.value = true;
-      await RenameAVD(oldInternalName, newName);
-      // Update local store to reflect the change
-      editAvd.value.name = newName;
-      editAvd.value.displayName = newName;
-      showToast('AVD Renamed ✅');
-      closeEditDialog();
-    } catch (err) {
-      showToast('Failed to rename AVD ❌');
-      console.error(err);
-    } finally {
-      isRenaming.value = false;
-    }
+    editAvd.value.name = newName;
+    editAvd.value.displayName = newName;
   }
+  showToast('AVD Renamed ✅');
 }
 
-async function openEnvVars() {
-  try {
-    await OpenEnvironmentVariables()
-  } catch (err) {
+function onRenameError(err) {
+  showToast('Failed to rename AVD ❌');
+  console.error(err);
+}
+
+function openEnvVars() {
+  OpenEnvironmentVariables().catch(err => {
     showToast('Failed to open environment settings ❌')
     console.error(err)
-  }
+  })
 }
 
 function openEnvInfo() {
@@ -389,10 +185,10 @@ async function initData() {
     sdkMissing.value = false
     localStorage.setItem('avd_sdk_missing', 'false')
 
-    // Step 1: Get AVD names (instant, reads .ini files)
+    // Step 1: Get AVD names
     const avdNames = await ListAVDs()
 
-    // Step 2: Get info + running state for all AVDs in parallel (instant, lock-folder check)
+    // Step 2: Get info + running state
     const infos = await Promise.all(
       avdNames.map(name => GetAvdInfo(name).catch(e => {
         console.error(`Error fetching info for ${name}:`, e)
@@ -400,7 +196,7 @@ async function initData() {
       }))
     )
 
-    // Step 3: Show cards immediately with correct running state
+    // Step 3: Show cards
     for (let i = 0; i < avdNames.length; i++) {
       const name = avdNames[i]
       const info = infos[i]
@@ -436,13 +232,12 @@ async function initData() {
           ramSize: info?.ramSize,
           resolution: info?.resolution,
           hasGooglePlay: info?.hasGooglePlay,
-          diskUsage: null,
-          hover: false
+          diskUsage: null
         })
       }
     }
 
-    // Step 4: Fetch disk usage in the background (can be slow)
+    // Step 4: Fetch disk usage in the background
     Promise.all(
       avdNames.map(name =>
         GetAvdDiskUsage(name)
@@ -496,46 +291,23 @@ function openDeleteDialog(avd) {
   showDeleteDialog.value = true
 }
 
-function closeDeleteDialog() {
-  isDeleteClosing.value = true
+function onDeleteSuccess(avdName) {
+  store.avds = store.avds.filter(a => a.name !== avdName);
+  showToast('AVD Deleted ✅');
 }
 
-function handleDeleteAnimationEnd(e) {
-  // Only trigger when the overlay's own animation ends
-  if (e.target !== e.currentTarget) return;
-
-  if (isDeleteClosing.value) {
-    showDeleteDialog.value = false
-    isDeleteClosing.value = false
-    deleteAvdTarget.value = null
-  }
-}
-
-async function confirmDeleteDialog() {
-  const avd = deleteAvdTarget.value
-  if (!avd) return
-
-  try {
-    // Just in case it's currently running, stop it first.
-    if (avd.state === AvdState.RUNNING) {
-      await stopAVD(avd.name);
-    }
-    await DeleteAVD(avd.name);
-
-    // Remove from store
-    store.avds = store.avds.filter(a => a.name !== avd.name);
-    showToast('AVD Deleted ✅');
-  } catch (err) {
-    showToast('Failed to delete AVD ❌');
-    console.error(err);
-  } finally {
-    closeDeleteDialog()
-  }
+function onDeleteError(err) {
+  showToast('Failed to delete AVD ❌');
+  console.error(err);
 }
 
 // Close menu on click outside
 function onClickOutside(event) {
-  if (!event.target.closest(`.${styles.menuButton}`) && !event.target.closest(`.${styles.contextMenu}`)) {
+  // Check if click is inside the menu itself
+  if (event.target.closest(`.${styles.contextMenu}`)) return
+
+  // Check if click is on any card's menu button
+  if (!event.target.closest('.avd-menu-btn')) {
     menuAvd.value = null
   }
 }

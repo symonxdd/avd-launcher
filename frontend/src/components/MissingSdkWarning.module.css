@@ -1,0 +1,125 @@
+.androidHomeWarning {
+  display: flex;
+  align-items: flex-start;
+  gap: 20px;
+  padding: 24px;
+  background: rgba(234, 179, 8, 0.08);
+  border: 1px solid rgba(234, 179, 8, 0.15);
+  border-radius: 16px;
+  color: var(--text-primary);
+  animation: fadeInWarning 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes fadeInWarning {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.warningIcon {
+  color: #ca8a04;
+  margin-top: 2px;
+}
+
+.warningContent {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.warningText {
+  font-size: 0.82rem;
+  line-height: 1.6;
+}
+
+.warningText p {
+  margin: 0;
+  color: var(--text-secondary);
+}
+
+.warningText p + p {
+  margin-top: 12px;
+}
+
+.warningTextFirstLine {
+  font-weight: 800;
+  font-size: 1.1rem;
+  color: #ca8a04;
+  margin-bottom: 8px;
+  letter-spacing: -0.01em;
+}
+
+.envLearnMore {
+  background: none;
+  border: none;
+  color: #3b82f6;
+  font-size: 0.84rem;
+  font-weight: 700;
+  padding: 0;
+  margin: 16px 0;
+  cursor: default;
+  text-decoration: underline dotted rgba(59, 130, 246, 0.3);
+  text-underline-offset: 4px;
+  transition: all 0.2s;
+  display: block;
+  width: fit-content;
+}
+
+:global(.theme-dark) .envLearnMore {
+  color: #ca8a04;
+  text-decoration-color: rgba(202, 138, 4, 0.3);
+}
+
+.envLearnMore:hover {
+  opacity: 1;
+  text-decoration-color: currentColor;
+}
+
+.warningActions {
+  display: flex;
+  gap: 12px;
+}
+
+.warningBtn {
+  cursor: default !important;
+}
+
+.btn {
+  padding: 8px 16px;
+  border-radius: 10px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: default;
+  transition: all 0.2s ease;
+  border: 1px solid transparent;
+}
+
+.btnPrimary {
+  background: var(--color-primary);
+  color: white;
+}
+
+:global(.theme-dark) .btnPrimary {
+  color: #111;
+}
+
+.btnPrimary:hover {
+  filter: brightness(1.1);
+}
+
+.btnSecondary {
+  background: var(--bg-card-active);
+  color: var(--text-primary);
+  border: 1px solid var(--border-subtle);
+}
+
+.btnSecondary:hover {
+  background: var(--border-strong);
+}
