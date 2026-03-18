@@ -7,18 +7,12 @@
         <span :class="styles.countBadge" v-show="store.avds.length">{{ store.avds.length }}</span>
       </div>
 
-      <MissingSdkWarning v-if="sdkMissing" 
-        :is-windows="isWindows" 
-        @select-sdk="selectSdkPath" 
-        @open-env-vars="openEnvVars" 
-        @open-env-info="openEnvInfo" />
+      <MissingSdkWarning v-if="sdkMissing" :is-windows="isWindows" @select-sdk="selectSdkPath"
+        @open-env-vars="openEnvVars" @open-env-info="openEnvInfo" />
     </div>
 
     <div v-show="store.avds.length && !sdkMissing" :class="styles.avdGrid">
-      <AvdCard v-for="avd in store.avds" :key="avd.name"
-        :avd="avd"
-        @toggle-menu="toggleMenu"
-        @launch="startAVD"
+      <AvdCard v-for="avd in store.avds" :key="avd.name" :avd="avd" @toggle-menu="toggleMenu" @launch="startAVD"
         @stop="stopAVD" />
     </div>
 
@@ -44,8 +38,10 @@
     </Teleport>
 
     <!-- Modals -->
-    <RenameAvdModal :show="showEditDialog" :avd="editAvd" @close="showEditDialog = false" @success="onRenameSuccess" @error="onRenameError" />
-    <DeleteAvdModal :show="showDeleteDialog" :avd="deleteAvdTarget" @close="showDeleteDialog = false" @success="onDeleteSuccess" @error="onDeleteError" />
+    <RenameAvdModal :show="showEditDialog" :avd="editAvd" @close="showEditDialog = false" @success="onRenameSuccess"
+      @error="onRenameError" />
+    <DeleteAvdModal :show="showDeleteDialog" :avd="deleteAvdTarget" @close="showDeleteDialog = false"
+      @success="onDeleteSuccess" @error="onDeleteError" />
 
     <!-- Env Vars Explanation Modal -->
     <EnvInfoModal :show="showEnvInfoDialog" :is-closing="isEnvInfoClosing" @close="closeEnvInfo"

@@ -11,7 +11,7 @@
 <br/>
 
 <div align="center">
-  <img src="./docs/screenshots/main-screen.png" alt="Main screen" width="869">
+  <img src="./docs/screenshots/home.png" alt="Home screen" width="869">
 </div>
 
 ## 📥 Downloads
@@ -84,23 +84,58 @@ Wails provides a fantastic bridge between the frontend (Vue.js) and Go’s power
 
 ## 📸 Screens  
 
-### Main
-![main-screen](./docs/screenshots/main-screen.png)
+### Home
+![home](./docs/screenshots/home.png)
+
+<br/>
+
+### Home (Side Layout)
+![home-side-layout](./docs/screenshots/home-side-layout.png)
+
+<br/>
+
+### AVD Details
+![home-avd-details](./docs/screenshots/home-avd-details.png)
+
+<br/>
+
+### Context Menu
+![home-context-menu](./docs/screenshots/home-context-menu.png)
+
+<br/>
+
+### Rename AVD
+![rename-avd](./docs/screenshots/rename-avd.png)
+
+<br/>
+
+### Delete AVD
+![delete-avd](./docs/screenshots/delete-avd.png)
 
 <br/>
 
 ### Logs
-![logs-screen](./docs/screenshots/logs-screen.png)
+![logs](./docs/screenshots/logs.png)
 
 <br/>
 
 ### Settings
-![settings-screen](./docs/screenshots/settings-screen.png) 
+![settings](./docs/screenshots/settings.png) 
 
 <br/>
 
-### ANDROID_HOME not set
-![android-home-not-set](./docs/screenshots/android-home-not-set.png) 
+### Environment Variables Info
+![environment-variables-info](./docs/screenshots/environment-variables-info.png)
+
+<br/>
+
+### Missing Android SDK
+![sdk-missing](./docs/screenshots/sdk-missing.png) 
+
+<br/>
+
+### Missing Android SDK (Side Layout)
+![sdk-missing-side-layout](./docs/screenshots/sdk-missing-side-layout.png) 
 
 <br/>
 
@@ -209,7 +244,7 @@ This project is built with passion using:
 - [Vue 3](https://vuejs.org/)
 
 <div align="center">
-  <sub>Made with 💜 by Symon from Belgium</sub>
+  <sub>Made with 💜 by Symon</sub>
 </div>
 <div align="center">
   <sub>Powered by <a href="https://wails.io/">Wails</a></sub>
