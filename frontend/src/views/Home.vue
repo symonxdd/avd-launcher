@@ -25,11 +25,14 @@
             <v-icon name="hi-folder-open" :scale="0.85" />
             <span>Show on Disk</span>
           </button>
-          <button @click="openEditDialog(menuAvd)">
+          <button @click="openEditDialog(menuAvd)" :disabled="menuAvd.state !== AvdState.POWERED_OFF"
+            :title="menuAvd.state !== AvdState.POWERED_OFF ? 'Cannot rename while AVD is running' : ''">
             <v-icon name="hi-pencil" :scale="0.85" />
             <span>Rename</span>
           </button>
-          <button @click="openDeleteDialog(menuAvd)" :class="styles.deleteItem">
+          <button @click="openDeleteDialog(menuAvd)" :class="styles.deleteItem"
+            :disabled="menuAvd.state !== AvdState.POWERED_OFF"
+            :title="menuAvd.state !== AvdState.POWERED_OFF ? 'Cannot delete while AVD is running' : ''">
             <v-icon name="hi-trash" :scale="0.85" />
             <span>Delete</span>
           </button>
@@ -55,7 +58,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onBeforeUnmount, nextTick } from 'vue'
+import { ref, computed, watch, onMounted, onBeforeUnmount, nextTick } from 'vue'
 import { ListAVDs, StartAVD, StopAVD, GetAvdInfo, GetAvdDiskUsage, OpenAvdFolder } from '../../wailsjs/go/manager/AvdManager'
 import { GetAndroidSdkEnv, OpenEnvironmentVariables, SelectAndSaveSdkPath } from '../../wailsjs/go/services/SystemService'
 import EnvInfoModal from '../components/EnvInfoModal.vue'
@@ -90,6 +93,20 @@ const sdkMissing = ref(localStorage.getItem('avd_sdk_missing') === 'true')
 const androidEnvChecked = ref(false)
 
 const isWindows = navigator.userAgent.includes('Windows')
+
+const isAnyModalOpen = computed(() =>
+  showEditDialog.value ||
+  showDeleteDialog.value ||
+  showEnvInfoDialog.value
+)
+
+watch(isAnyModalOpen, (isOpen) => {
+  if (isOpen) {
+    document.body.classList.add('modal-open')
+  } else {
+    document.body.classList.remove('modal-open')
+  }
+})
 
 function openFolder(path) {
   if (path) {

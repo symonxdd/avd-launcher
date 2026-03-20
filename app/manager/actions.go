@@ -29,6 +29,9 @@ func (m *AvdManager) RenameAVD(oldName, newName string) error {
 	if err != nil {
 		return err
 	}
+	if info.Running {
+		return fmt.Errorf("cannot rename a running AVD")
+	}
 	newAvdPath := filepath.Join(avdDir, newID+".avd")
 
 	if info.Path != newAvdPath {
@@ -51,6 +54,14 @@ func (m *AvdManager) RenameAVD(oldName, newName string) error {
 }
 
 func (m *AvdManager) DeleteAVD(name string) error {
+	info, err := m.GetAvdInfo(name)
+	if err != nil {
+		return err
+	}
+	if info.Running {
+		return fmt.Errorf("cannot delete a running AVD")
+	}
+
 	path, _ := helper.GetAvdManagerPath()
 	output, err := helper.NewCommand(path, "delete", "avd", "-n", name).CombinedOutput()
 	if err != nil {
@@ -67,7 +78,7 @@ func (m *AvdManager) OpenAvdFolder(path string) {
 
 func sanitizeAvdID(name string) string {
 	reg := regexp.MustCompile(`[^a-zA-Z0-9._-]`)
-	return strings.Trim(regexp.MustCompile(`\s+`).ReplaceAllString(reg.ReplaceAllString(strings.TrimSpace(name), " "), "_"), "_")
+	return strings.ToLower(strings.Trim(regexp.MustCompile(`\s+`).ReplaceAllString(reg.ReplaceAllString(strings.TrimSpace(name), " "), "_"), "_"))
 }
 
 func stripEmojis(s string) string {

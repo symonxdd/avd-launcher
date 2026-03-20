@@ -8,16 +8,10 @@
         @keyup.enter="saveEdit" spellcheck="false" autocorrect="off" autocapitalize="off" />
       <div :class="styles.allowedCharsInfo">
         <v-icon name="hi-sparkles" :scale="0.8" />
-        <span>Any characters are allowed for the display name. The internal ID will be:
+        <span>Any characters (including emojis) are allowed for the display name.
+          <br />The internal ID will be:
           <code :class="styles.idPreview">{{ internalIdPreview || '...' }}</code></span>
       </div>
-      <transition name="fade-slide">
-        <div v-if="isCaseOnlyChange" :class="styles.renameHint">
-          <v-icon name="hi-information-circle" :scale="0.8" />
-          <span>To change only capitalization, first rename to something else, then back to the desired name with the
-            correct case.</span>
-        </div>
-      </transition>
       <div :class="styles.modalActions">
         <button :class="[styles.btn, styles.btnSecondary]" @click="closeModal"
           :disabled="isRenaming">Cancel</button>
@@ -77,6 +71,7 @@ const internalIdPreview = computed(() => {
   // 1. Replace all non-allowed chars with spaces.
   // 2. Trim and collapse consecutive spaces into single underscores.
   return name
+    .toLowerCase()
     .replace(/[^a-zA-Z0-9._-]/g, ' ')
     .trim()
     .replace(/\s+/g, '_');
@@ -87,13 +82,6 @@ const isRenameDisabled = computed(() => {
   const oldDisplayName = props.avd.displayName || props.avd.name;
   const newName = editAvdName.value.trim();
   return newName === '' || oldDisplayName === newName;
-})
-
-const isCaseOnlyChange = computed(() => {
-  if (!props.avd) return false;
-  const oldDisplayName = props.avd.displayName || props.avd.name;
-  const newName = editAvdName.value.trim();
-  return oldDisplayName !== newName && oldDisplayName.toLowerCase() === newName.toLowerCase();
 })
 
 function closeModal() {

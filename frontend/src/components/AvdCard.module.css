@@ -102,6 +102,10 @@
   100% { transform: translateX(calc(-50% - 20px)); } /* -50% of the double width, including half the gap */
 }
 
+:global(body.modal-open) .marquee {
+  animation-play-state: paused !important;
+}
+
 
 .menuButton {
   background: none;

@@ -124,6 +124,12 @@
   color: #111;
 }
 
+.contextMenu button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
 /* ──── Toast ──── */
 .toast {
   position: fixed;
