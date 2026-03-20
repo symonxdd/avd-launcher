@@ -8,8 +8,14 @@
       <div :class="styles.avdAvatarContainer">
         <div :class="styles.avdAvatar">{{ avd.name.charAt(0).toUpperCase() }}</div>
       </div>
-      <div :class="styles.avdNameContainer">
-        <div :class="styles.avdName">{{ avd.displayName || avd.name }}</div>
+      <div :class="[styles.avdNameContainer, { [styles.noOverflow]: !shouldMarquee }]" ref="containerRef">
+        <div :class="[styles.avdName, { [styles.marquee]: shouldMarquee }]">
+          <span ref="nameRef">{{ avd.displayName || avd.name }}</span>
+          <span v-if="shouldMarquee">{{ avd.displayName || avd.name }}</span>
+        </div>
+      </div>
+
+      <div :class="styles.headerActions">
         <div :class="styles.infoTooltipTrigger"
              @mouseenter="showInfoTooltip"
              @mouseleave="hideInfoTooltip"
@@ -72,10 +78,10 @@
             </transition>
           </Teleport>
         </div>
+        <button :class="[styles.menuButton, 'avd-menu-btn', { [styles.menuVisible]: isHovered }]" @click="$emit('toggle-menu', avd, $event)">
+          <v-icon name="hi-dots-horizontal" />
+        </button>
       </div>
-      <button :class="[styles.menuButton, 'avd-menu-btn', { [styles.menuVisible]: isHovered }]" @click="$emit('toggle-menu', avd, $event)">
-        <v-icon name="hi-dots-horizontal" />
-      </button>
     </div>
 
     <!-- Status indicator: dot + label -->
@@ -109,17 +115,10 @@
 </template>
 
 <script setup>
-import { ref, nextTick } from 'vue'
+import { ref, nextTick, onMounted, onBeforeUnmount, watch } from 'vue'
 import { AvdState } from '../enums/avdState'
 import { getStateClass } from '../utils/helper'
 import styles from './AvdCard.module.css'
-
-defineProps({
-  avd: {
-    type: Object,
-    required: true
-  }
-})
 
 defineEmits(['toggle-menu', 'launch', 'stop'])
 
@@ -129,6 +128,60 @@ const tooltipTrigger = ref(null)
 const infoTooltip = ref(null)
 const isTooltipVisible = ref(false)
 const tooltipStyle = ref({})
+
+// Marquee logic
+const nameRef = ref(null)
+const containerRef = ref(null)
+const shouldMarquee = ref(false)
+
+function checkOverflow() {
+  if (nameRef.value && containerRef.value) {
+    const isOver = nameRef.value.offsetWidth > containerRef.value.clientWidth
+    shouldMarquee.value = isOver
+    
+    if (isOver) {
+      // Calculate duration for constant speed (approx 30px per sec for "fast" fee)
+      const duration = Math.max(4, (nameRef.value.offsetWidth + 40) / 30) // length + gap
+      containerRef.value.style.setProperty('--marquee-duration', `${duration}s`)
+    }
+  }
+}
+
+let resizeObserver = null
+
+onMounted(() => {
+  checkOverflow()
+  
+  if (containerRef.value) {
+    resizeObserver = new ResizeObserver(checkOverflow)
+    resizeObserver.observe(containerRef.value)
+  }
+})
+
+onBeforeUnmount(() => {
+  if (resizeObserver) {
+    resizeObserver.disconnect()
+  }
+})
+
+// Re-check overflow if name changes
+// props.avd is what we watch
+const props = defineProps({
+  avd: {
+    type: Object,
+    required: true
+  }
+})
+
+watch(() => props.avd.displayName, async () => {
+  await nextTick()
+  checkOverflow()
+})
+
+watch(() => props.avd.name, async () => {
+  await nextTick()
+  checkOverflow()
+})
 
 async function showInfoTooltip() {
   if (!tooltipTrigger.value) return

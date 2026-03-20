@@ -116,11 +116,8 @@ function openEditDialog(avd) {
   menuAvd.value = null
 }
 
-function onRenameSuccess({ oldName, newName }) {
-  if (editAvd.value) {
-    editAvd.value.name = newName;
-    editAvd.value.displayName = newName;
-  }
+async function onRenameSuccess() {
+  await initData();
   showToast('AVD Renamed ✅');
 }
 
@@ -192,19 +189,22 @@ async function initData() {
       }))
     )
 
-    // Step 3: Show cards
+    // Step 2.5: Remove AVDs that are no longer present
+    store.avds = store.avds.filter(a => avdNames.includes(a.name))
+
+    // Step 3: Show/Update cards
     for (let i = 0; i < avdNames.length; i++) {
       const name = avdNames[i]
       const info = infos[i]
       const isRunning = info?.running ?? false
 
-      const existing = store.avds.find(a => a.name === name)
+      const existingIndex = store.avds.findIndex(a => a.name === name)
       const update = {
         state: isRunning ? AvdState.RUNNING : AvdState.POWERED_OFF,
         path: info?.path
       }
 
-      if (existing) {
+      if (existingIndex !== -1) {
         store.updateAvdStatus(name, {
           ...update,
           displayName: info?.displayName,

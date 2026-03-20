@@ -8,8 +8,8 @@
         @keyup.enter="saveEdit" spellcheck="false" autocorrect="off" autocapitalize="off" />
       <div :class="styles.allowedCharsInfo">
         <v-icon name="hi-sparkles" :scale="0.8" />
-        <span>The name can contain uppercase or lowercase letters, numbers, periods, underscores, parentheses, dashes,
-          and spaces.</span>
+        <span>Any characters are allowed for the display name. The internal ID will be:
+          <code :class="styles.idPreview">{{ internalIdPreview || '...' }}</code></span>
       </div>
       <transition name="fade-slide">
         <div v-if="isCaseOnlyChange" :class="styles.renameHint">
@@ -70,6 +70,18 @@ watch(() => props.show, (newVal) => {
   }
 }, { immediate: true })
 
+const internalIdPreview = computed(() => {
+  const name = editAvdName.value.trim();
+  if (!name) return '';
+  // 🧠 Logic matches Go's refined sanitizeAvdID:
+  // 1. Replace all non-allowed chars with spaces.
+  // 2. Trim and collapse consecutive spaces into single underscores.
+  return name
+    .replace(/[^a-zA-Z0-9._-]/g, ' ')
+    .trim()
+    .replace(/\s+/g, '_');
+})
+
 const isRenameDisabled = computed(() => {
   if (!props.avd || isRenaming.value) return true;
   const oldDisplayName = props.avd.displayName || props.avd.name;
@@ -117,10 +129,13 @@ async function saveEdit() {
     await RenameAVD(oldInternalName, newName);
     // Let the parent handle store updates and toasts
     emit('success', { oldName: oldInternalName, newName });
+    
+    // 🧠 Set isRenaming to false before closing, 
+    // otherwise closeModal() returns early due to its own guard.
+    isRenaming.value = false;
     closeModal();
   } catch (err) {
     emit('error', err);
-  } finally {
     isRenaming.value = false;
   }
 }

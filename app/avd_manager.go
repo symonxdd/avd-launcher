@@ -9,11 +9,33 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strconv"
 	"strings"
 
 	"github.com/wailsapp/wails/v2/pkg/runtime"
 )
+
+func sanitizeAvdID(name string) string {
+	// 🧠 Trim and replace all non-allowed chars with spaces first, 
+	// then collapse those spaces into single underscores.
+	name = strings.TrimSpace(name)
+	regInvalid := regexp.MustCompile(`[^a-zA-Z0-9._-]`)
+	name = regInvalid.ReplaceAllString(name, " ")
+	
+	regSpace := regexp.MustCompile(`\s+`)
+	name = regSpace.ReplaceAllString(name, "_")
+	
+	// Final trim of underscores from the ends
+	return strings.Trim(name, "_")
+}
+
+func stripEmojis(s string) string {
+	// 🧠 Keep only alphanumeric, spaces, and common safe punctuation for the standard field.
+	// This ensures Android Studio/SDK tools don't crash or error out.
+	reg := regexp.MustCompile(`[^\x00-\x7F]+`)
+	return strings.TrimSpace(reg.ReplaceAllString(s, ""))
+}
 
 // Retrieves list of installed AVDs
 func (a *App) ListAVDs() ([]string, error) {
@@ -273,22 +295,159 @@ func (a *App) GetAndroidSdkEnv() helper.SdkInfo {
 	return sdkInfo
 }
 
-// Renames an existing AVD using avdmanager
+// Renames an existing AVD by manually updating its file references and metadata
 func (a *App) RenameAVD(oldName, newName string) error {
-	avdManagerStr, err := helper.GetAvdManagerPath()
+	newID := sanitizeAvdID(newName)
+	if newID == "" {
+		return fmt.Errorf("invalid AVD name")
+	}
+
+	avdDir, err := helper.GetAvdDirectory()
 	if err != nil {
 		return err
 	}
 
-	cmd := helper.NewCommand(avdManagerStr, "move", "avd", "-n", oldName, "-r", newName)
-	cmd.Env = os.Environ()
+	oldIniPath := filepath.Join(avdDir, oldName+".ini")
+	newIniPath := filepath.Join(avdDir, newID+".ini")
 
-	output, err := cmd.CombinedOutput()
-	if err != nil {
-		return fmt.Errorf("failed to rename AVD '%s' to '%s': %w, output: %s", oldName, newName, err, string(output))
+	// 1. Check if new AVD ID already exists (and it's not the same as old)
+	if oldName != newID {
+		if _, err := os.Stat(newIniPath); err == nil {
+			return fmt.Errorf("an AVD with ID '%s' already exists", newID)
+		}
 	}
 
-	fmt.Printf("Renamed AVD '%s' to '%s': %s\n", oldName, newName, string(output))
+	// 2. Identify the current AVD folder path from the .ini file
+	oldAvdInfo, err := a.GetAvdInfo(oldName)
+	if err != nil {
+		return fmt.Errorf("could not find current AVD info: %w", err)
+	}
+	oldAvdPath := oldAvdInfo.Path
+	newAvdPath := filepath.Join(avdDir, newID+".avd")
+
+	// 3. Rename the .avd folder
+	if oldAvdPath != newAvdPath {
+		if _, err := os.Stat(newAvdPath); err == nil {
+			return fmt.Errorf("destination folder '%s' already exists", newID+".avd")
+		}
+		if err := os.Rename(oldAvdPath, newAvdPath); err != nil {
+			return fmt.Errorf("failed to rename AVD folder: %w", err)
+		}
+	}
+
+	// 4. Rename and Update the root .ini file
+	if oldName != newID {
+		iniData, err := os.ReadFile(oldIniPath)
+		if err != nil {
+			return fmt.Errorf("failed to read .ini file: %w", err)
+		}
+
+		lines := strings.Split(string(iniData), "\n")
+		var newLines []string
+		foundPath := false
+		foundPathRel := false
+
+		for _, line := range lines {
+			trimmed := strings.TrimSpace(line)
+			if trimmed == "" || strings.HasPrefix(trimmed, "#") {
+				newLines = append(newLines, trimmed)
+				continue
+			}
+
+			parts := strings.SplitN(trimmed, "=", 2)
+			if len(parts) < 2 {
+				newLines = append(newLines, trimmed)
+				continue
+			}
+
+			key := strings.TrimSpace(parts[0])
+			if key == "path" {
+				if !foundPath {
+					newLines = append(newLines, "path="+newAvdPath)
+					foundPath = true
+				}
+			} else if key == "path.rel" {
+				if !foundPathRel {
+					newLines = append(newLines, "path.rel=avd\\"+newID+".avd")
+					foundPathRel = true
+				}
+			} else {
+				newLines = append(newLines, trimmed)
+			}
+		}
+
+		if err := os.WriteFile(newIniPath, []byte(strings.Join(newLines, "\r\n")+"\r\n"), 0644); err != nil {
+			return fmt.Errorf("failed to create new .ini file: %w", err)
+		}
+
+		// Delete old .ini file
+		if err := os.Remove(oldIniPath); err != nil {
+			fmt.Printf("Warning: failed to remove old .ini file '%s': %v\n", oldIniPath, err)
+		}
+	}
+
+	// 5. Update config.ini
+	configPath := filepath.Join(newAvdPath, "config.ini")
+	configData, err := os.ReadFile(configPath)
+	if err != nil {
+		return fmt.Errorf("failed to read config.ini: %w", err)
+	}
+
+	lines := strings.Split(string(configData), "\n")
+	var newConfigLines []string
+	foundDisplayName := false
+	foundLauncherName := false
+	foundAvdId := false
+
+	for _, line := range lines {
+		trimmed := strings.TrimSpace(line)
+		if trimmed == "" || strings.HasPrefix(trimmed, "#") {
+			newConfigLines = append(newConfigLines, trimmed)
+			continue
+		}
+
+		parts := strings.SplitN(trimmed, "=", 2)
+		if len(parts) < 2 {
+			newConfigLines = append(newConfigLines, trimmed)
+			continue
+		}
+
+		key := strings.TrimSpace(parts[0])
+		if key == "avd.ini.displayname" {
+			if !foundDisplayName {
+				newConfigLines = append(newConfigLines, "avd.ini.displayname="+stripEmojis(newName))
+				foundDisplayName = true
+			}
+		} else if key == "avd.launcher.displayname" {
+			if !foundLauncherName {
+				newConfigLines = append(newConfigLines, "avd.launcher.displayname="+newName)
+				foundLauncherName = true
+			}
+		} else if key == "AvdId" {
+			if !foundAvdId {
+				newConfigLines = append(newConfigLines, "AvdId="+newID)
+				foundAvdId = true
+			}
+		} else {
+			newConfigLines = append(newConfigLines, trimmed)
+		}
+	}
+
+	if !foundDisplayName {
+		newConfigLines = append(newConfigLines, "avd.ini.displayname="+stripEmojis(newName))
+	}
+	if !foundLauncherName {
+		newConfigLines = append(newConfigLines, "avd.launcher.displayname="+newName)
+	}
+	if !foundAvdId {
+		newConfigLines = append(newConfigLines, "AvdId="+newID)
+	}
+
+	if err := os.WriteFile(configPath, []byte(strings.Join(newConfigLines, "\r\n")+"\r\n"), 0644); err != nil {
+		return fmt.Errorf("failed to update config.ini: %w", err)
+	}
+
+	fmt.Printf("Renamed AVD '%s' to '%s' (ID: %s)\n", oldName, newName, newID)
 	return nil
 }
 
@@ -364,8 +523,12 @@ func (a *App) GetAvdInfo(avdName string) (models.AvdInfo, error) {
 			val := strings.TrimSpace(parts[1])
 
 			switch key {
-			case "avd.ini.displayname":
+			case "avd.launcher.displayname":
 				avd.DisplayName = val
+			case "avd.ini.displayname":
+				if avd.DisplayName == "" {
+					avd.DisplayName = val
+				}
 			case "abi.type":
 				avd.Abi = val
 			case "hw.ramSize":
