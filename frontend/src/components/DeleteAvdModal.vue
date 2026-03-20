@@ -21,7 +21,7 @@
 
 <script setup>
 import { ref, watch } from 'vue'
-import { DeleteAVD, StopAVD } from '../../wailsjs/go/app/App'
+import { DeleteAVD, StopAVD } from '../../wailsjs/go/manager/AvdManager'
 import { AvdState } from '../enums/avdState'
 import styles from './DeleteAvdModal.module.css'
 

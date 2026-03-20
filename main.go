@@ -2,7 +2,9 @@ package main
 
 import (
 	"avd-launcher/app"
+	"avd-launcher/app/manager"
 	"avd-launcher/app/services"
+	"context"
 	"embed"
 
 	"github.com/wailsapp/wails/v2"
@@ -15,26 +17,31 @@ import (
 var assets embed.FS
 
 func main() {
-	// Create an instance of the app structure
 	myApp := app.NewApp()
+	avdManager := manager.NewAvdManager()
+	systemService := services.NewSystemService()
 	updateService := services.NewUpdateService()
 
-	// Create application with options
 	err := wails.Run(&options.App{
 		Title:  "AVD Launcher",
-		Width:  950, // 1024
-		Height: 600, // 768
+		Width:  950,
+		Height: 600,
 		AssetServer: &assetserver.Options{
 			Assets: assets,
 		},
 		BackgroundColour: &options.RGBA{R: 27, G: 38, B: 54, A: 1},
 		Frameless:        true,
-		OnStartup:        myApp.Startup,
-		LogLevel:         logger.INFO,
+		OnStartup: func(ctx context.Context) {
+			app.SetContext(myApp, ctx)
+			manager.SetContext(avdManager, ctx)
+			services.SetContext(systemService, ctx)
+		},
+		LogLevel: logger.INFO,
 
-		// This allows the frontend to call methods from the backend
 		Bind: []interface{}{
 			myApp,
+			avdManager,
+			systemService,
 			updateService,
 		},
 	})

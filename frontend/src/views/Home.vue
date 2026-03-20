@@ -56,7 +56,8 @@
 
 <script setup>
 import { ref, onMounted, onBeforeUnmount, nextTick } from 'vue'
-import { ListAVDs, StartAVD, StopAVD, GetAndroidSdkEnv, OpenEnvironmentVariables, SelectAndSaveSdkPath, GetAvdInfo, GetAvdDiskUsage, OpenAvdFolder } from '../../wailsjs/go/app/App'
+import { ListAVDs, StartAVD, StopAVD, GetAvdInfo, GetAvdDiskUsage, OpenAvdFolder } from '../../wailsjs/go/manager/AvdManager'
+import { GetAndroidSdkEnv, OpenEnvironmentVariables, SelectAndSaveSdkPath } from '../../wailsjs/go/services/SystemService'
 import EnvInfoModal from '../components/EnvInfoModal.vue'
 import MissingSdkWarning from '../components/MissingSdkWarning.vue'
 import RenameAvdModal from '../components/RenameAvdModal.vue'

@@ -35,7 +35,7 @@
 
 <script setup>
 import { ref, computed, watch } from 'vue'
-import { RenameAVD } from '../../wailsjs/go/app/App'
+import { RenameAVD } from '../../wailsjs/go/manager/AvdManager'
 import styles from './RenameAvdModal.module.css'
 
 const props = defineProps({

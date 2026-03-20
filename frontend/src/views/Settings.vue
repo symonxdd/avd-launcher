@@ -131,7 +131,7 @@
 
 <script setup>
 import { ref, onMounted, computed } from 'vue'
-import { GetAndroidSdkEnv, OpenConfigFolder } from '../../wailsjs/go/app/App'
+import { GetAndroidSdkEnv, OpenConfigFolder } from '../../wailsjs/go/services/SystemService'
 import { GetLatestVersion } from '../../wailsjs/go/services/UpdateService'
 import { BrowserOpenURL } from '../../wailsjs/runtime'
 import { useThemeStore } from '../stores/themeStore'
