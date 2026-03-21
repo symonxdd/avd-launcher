@@ -53,6 +53,37 @@
               <v-icon v-else name="hi-x" scale="1.2" />
             </div>
           </div>
+
+          <div
+            :class="[styles.sdkStatusRow, { [styles.accelFound]: !isCheckingAccel && accelInfo?.status === 'available', [styles.accelMissing]: !isCheckingAccel && accelInfo?.status !== 'available' }]">
+            <div :class="styles.statusInfo">
+              <div :class="styles.statusLabelRow">
+                <span :class="styles.statusLabel">VM Acceleration</span>
+                <div v-if="!isCheckingAccel" :class="styles.infoTooltipTrigger">
+                  <v-icon name="hi-information-circle" :class="styles.infoIcon" />
+                  <div :class="styles.infoTooltip">
+                    <template v-if="accelInfo?.status === 'available'">
+                      {{ accelInfo.hypervisor }} is active.
+                    </template>
+                    <template v-else>
+                      No hypervisor detected. Emulators will run significantly slower.
+                    </template>
+                    <span :class="styles.externalLink" @click="openAccelDocs">
+                      Learn more
+                      <v-icon name="hi-external-link" :class="styles.externalLinkIcon" />
+                    </span>
+                  </div>
+                </div>
+              </div>
+              <span :class="[styles.statusPath, { [styles.hidden]: isCheckingAccel }]">
+                {{ accelInfo ? accelInfo.details : 'Checking...' }}
+              </span>
+            </div>
+            <div :class="[styles.statusIconBox, { [styles.hidden]: isCheckingAccel }]">
+              <v-icon v-if="accelInfo?.status === 'available'" name="hi-check" scale="1.2" />
+              <v-icon v-else name="hi-x" scale="1.2" />
+            </div>
+          </div>
         </div>
       </div>
 
@@ -131,7 +162,7 @@
 
 <script setup>
 import { ref, onMounted, computed } from 'vue'
-import { GetAndroidSdkEnv, OpenConfigFolder } from '../../wailsjs/go/services/SystemService'
+import { GetAndroidSdkEnv, OpenConfigFolder, CheckAcceleration } from '../../wailsjs/go/services/SystemService'
 import { GetLatestVersion } from '../../wailsjs/go/services/UpdateService'
 import { BrowserOpenURL } from '../../wailsjs/runtime'
 import { useThemeStore } from '../stores/themeStore'
@@ -144,6 +175,8 @@ const updateStore = useUpdateStore()
 const androidSdkEnv = ref(null)
 const SDK_MISSING_MSG = 'No SDK path configured. Please check the AVD tab for more information.'
 const isCheckingSdk = ref(true)
+const accelInfo = ref(null)
+const isCheckingAccel = ref(true)
 const appVersion = typeof __APP_VERSION__ !== "undefined" ? __APP_VERSION__ : "1.0.0"
 const environment = import.meta.env.MODE === 'development' ? 'dev' : 'release'
 const isWindows = navigator.userAgent.includes('Windows')
@@ -195,6 +228,10 @@ const handleOpenGithubRelease = () => {
   }
 }
 
+function openAccelDocs() {
+  BrowserOpenURL('https://developer.android.com/studio/run/emulator-acceleration')
+}
+
 function openEnvInfo() {
   showEnvInfoDialog.value = true
   isEnvInfoClosing.value = false
@@ -218,6 +255,17 @@ onMounted(async () => {
   } finally {
     isCheckingSdk.value = false
   }
+
+  // Check acceleration in parallel with update check
+  CheckAcceleration().then(info => {
+    accelInfo.value = info
+  }).catch(err => {
+    console.error('Error checking acceleration:', err)
+    accelInfo.value = { status: 'unavailable', hypervisor: 'Unknown', details: 'Check failed.' }
+  }).finally(() => {
+    isCheckingAccel.value = false
+  })
+
   await updateStore.checkForUpdate()
 })
 </script>

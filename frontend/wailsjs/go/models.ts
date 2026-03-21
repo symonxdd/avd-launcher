@@ -19,6 +19,22 @@ export namespace helper {
 
 export namespace models {
 	
+	export class AccelInfo {
+	    status: string;
+	    hypervisor: string;
+	    details: string;
+	
+	    static createFrom(source: any = {}) {
+	        return new AccelInfo(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.status = source["status"];
+	        this.hypervisor = source["hypervisor"];
+	        this.details = source["details"];
+	    }
+	}
 	export class AvdInfo {
 	    name: string;
 	    displayName: string;

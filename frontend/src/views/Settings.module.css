@@ -321,7 +321,7 @@
   position: absolute;
   bottom: 150%;
   left: 50%;
-  transform: translateX(-50%) translateY(8px);
+  transform: translateX(-40%) translateY(8px);
   background: var(--bg-surface);
   border: 1px solid var(--border-subtle);
   padding: 6px 10px;
@@ -341,7 +341,7 @@
   content: '';
   position: absolute;
   top: 100%;
-  left: 50%;
+  left: 40%;
   transform: translateX(-50%);
   border-width: 5px;
   border-style: solid;
@@ -350,7 +350,7 @@
 
 .infoTooltipTrigger:hover .infoTooltip {
   opacity: 1;
-  transform: translateX(-50%) translateY(0);
+  transform: translateX(-40%) translateY(0);
   pointer-events: auto;
 }
 
@@ -365,6 +365,29 @@
 .configLink:hover {
   color: #fbbb03;
   text-decoration-color: #fbbb03;
+}
+
+.externalLink {
+  text-decoration: underline solid color-mix(in srgb, currentColor 40%, transparent);
+  text-underline-offset: 3px;
+  cursor: default;
+  transition: color 0.2s ease, text-decoration-color 0.2s ease;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.externalLink:hover {
+  color: #fbbb03;
+  text-decoration-color: #fbbb03;
+}
+
+.externalLinkIcon {
+  width: 14px;
+  height: 14px;
+  opacity: 0.8;
+  margin-top: 1px;
 }
 
 .statusPath {
@@ -388,6 +411,14 @@
 }
 
 .sdkMissing .statusIconBox {
+  color: #e74c3c;
+}
+
+.accelFound .statusIconBox {
+  color: #2ecc71;
+}
+
+.accelMissing .statusIconBox {
   color: #e74c3c;
 }
 
